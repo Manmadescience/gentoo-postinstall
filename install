@@ -1,0 +1,4 @@
+#!/bin/bash
+GIT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+SOURCE_LINE="source \"$GIT_DIR/env-init\""
+grep -q -F "$SOURCE_LINE" $HOME/.bashrc || printf "\n# execute custom init script\n$SOURCE_LINE" >> $HOME/.bashrc
