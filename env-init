@@ -8,6 +8,10 @@ if [ -d "$HOME/bin" ] ; then
         PATH=$PATH:$HOME/programming/misc/depot_tools
 fi
 
+# bind history search to arrow keys
+bind '"\e[A":history-search-backward'
+bind '"\e[B":history-search-forward'
+
 # enable bash completion
 source /etc/bash/bashrc.d/bash_completion.sh
 # also for sudo'ed commands
