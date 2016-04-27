@@ -3,3 +3,7 @@
 if [ -d "$HOME/bin" ] ; then
     PATH="$HOME/bin:$PATH"
 fi
+# android sdk tools necessary to build cyanogenmod
+if [ -d "$HOME/bin" ] ; then
+        PATH=$PATH:$HOME/programming/misc/depot_tools
+fi
