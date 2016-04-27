@@ -7,3 +7,8 @@ fi
 if [ -d "$HOME/bin" ] ; then
         PATH=$PATH:$HOME/programming/misc/depot_tools
 fi
+
+# enable bash completion
+source /etc/bash/bashrc.d/bash_completion.sh
+# also for sudo'ed commands
+complete -cf sudo
