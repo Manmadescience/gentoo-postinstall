@@ -1,0 +1,39 @@
+#!/bin/bash
+#CHK="\033[32m*\033[0m"
+#ERR="\033[31m*\033[0m"
+#printf " \033[32m*\033[0m %s%120s\r" "Entering linux src folder..." $CHK
+#printf " \033[32m*\033[0m %s%120s\r" "Entering linux src folder..." $CHK
+
+printf " \033[31m*\033[0m Entering linux src dir...\n"
+cd /usr/src/linux
+
+version=$(make kernelversion)
+
+printf " \033[31m*\033[0m Version of kernel sources determined: $version\n"
+
+printf " \033[31m*\033[0m Copying DSDT table patch...\n"
+cp /home/hoefling/programming/misc/msi-gx70-3cc-acpi-fixes/dsdt.hex /usr/src/linux/dsdt_table.h
+
+printf " \033[31m*\033[0m Compiling kernel sources with existing config...\n"
+make -j5 > /dev/null
+
+printf " \033[31m*\033[0m Installing kernel modules...\n"
+make modules_install -j5 > /dev/null
+make install > /dev/null
+
+printf " \033[31m*\033[0m Compiling kernel to boot dir...\n"
+cp /boot/vmlinuz-$version /boot/efi/boot/bootx64.efi
+
+#printf " \033[31m*\033[0m Signing kernel with custom secure boot keys...\n"
+#sbsign --key /etc/efikeys/db.key --cert /etc/efikeys/db.crt --output /boot/efi/boot/bootx64.efi.signed /boot/efi/boot/bootx64.efi
+
+#printf " \033[31m*\033[0m Backing up unsigned kernel...\n"
+#mv /boot/efi/boot/bootx64.efi /boot/efi/boot/bootx64.efi.unsigned
+#cp /boot/efi/boot/bootx64.efi.signed /boot/efi/boot/bootx64.efi
+
+printf " \033[31m*\033[0m Rebuilding modules...\n"
+make modules_prepare 1> /dev/null
+emerge @module-rebuild 1> /dev/null
+
+printf "\n \033[32m*\033[0m Kernel compiled, you may reboot now.\n\n"
+
