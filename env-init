@@ -22,7 +22,7 @@ function netqa-append-projects {
 
 function append-netqa-paths {
 	# netqa-specific
-	DIR_PROJECTS="$HOME/projects"
+	DIR_PROJECTS="$HOME/projects/netqa"
 
 	if [ -d "$DIR_PROJECTS" ]; then
 		netqa-append-projects
