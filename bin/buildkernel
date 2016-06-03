@@ -4,15 +4,25 @@
 #printf " \033[32m*\033[0m %s%120s\r" "Entering linux src folder..." $CHK
 #printf " \033[32m*\033[0m %s%120s\r" "Entering linux src folder..." $CHK
 
-printf " \033[31m*\033[0m Entering linux src dir...\n"
-cd /usr/src/linux
+SOURCEDIR="/usr/src/linux"
+if [ ! -d "$SOURCEDIR" ]; then
+	printf " \033[31m* ERROR:\033[0m Linux source dir not found.\n"
+	exit 1
+fi
+
+printf " \033[31m*\033[0m Entering linux source dir...\n"
+cd $SOURCEDIR
 
 version=$(make kernelversion)
 
 printf " \033[31m*\033[0m Version of kernel sources determined: $version\n"
 
-printf " \033[31m*\033[0m Copying DSDT table patch...\n"
-cp /home/hoefling/programming/misc/msi-gx70-3cc-acpi-fixes/dsdt.hex /usr/src/linux/dsdt_table.h
+DSDT_SRC="/home/hoefling/programming/misc/msi-gx70-3cc-acpi-fixes/dsdt.hex"
+if [ -f "$DSDT_SRC" ]; then
+	printf " \033[31m*\033[0m Copying DSDT table patch...\n"
+	DSDT_TARGET="$SRCDIR/dsdt_table.h"
+	cp $DSDT_SRC $DSDT_TARGET
+fi
 
 printf " \033[31m*\033[0m Compiling kernel sources with existing config...\n"
 make -j5 > /dev/null
