@@ -1,0 +1,22 @@
+#!/bin/bash
+
+IF=$1
+STATUS=$2
+INTERFACE="enp0s25"
+
+if [ "$IF" == "$INTERFACE" ]; then
+	case "$STATUS" in
+		up) # react on interface up
+		mount -a
+		;;
+		down) # react on interface down
+		;;
+		pre-up) # hook executed before interface is up
+		;;
+		post-down) # post-down hook
+		;;
+		*) # ignore on default
+		;;
+	esac
+fi
+exit 0
