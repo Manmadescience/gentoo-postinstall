@@ -27,7 +27,7 @@ function append-netqa-paths {
 	if [ -d "$DIR_PROJECTS" ]; then
 		netqa-append-projects
 	else
-		echo "ERROR: the projects directory not found."
+		echo "ERROR: the netqa projects directory not found."
 	fi
 }
 
