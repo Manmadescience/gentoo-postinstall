@@ -6,4 +6,5 @@ grep -q -F "$SOURCE_LINE" $HOME/.bashrc || printf "\n# execute custom init scrip
 # copy custom executables
 if [ -d "$HOME/bin" ] ; then
     cp -ax $GIT_DIR/bin/* $HOME/bin
+    cp -ax $GIT_DIR/qemu/* $HOME/bin
 fi
