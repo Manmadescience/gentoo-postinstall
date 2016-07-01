@@ -1,0 +1,17 @@
+#!/usr/bin/env python
+
+import sys
+import zlib
+
+def main():
+	if len(sys.argv) != 2:
+		print('usage: {0} <VM Name>'.format(sys.argv[0]))
+	return 1
+
+	crc = zlib.crc32(sys.argv[1].encode('utf-8')) & 0xffffffff
+	crc = str(hex(crc))[2:]
+	print('52:54:{0}{1}:{2}{3}:{4}{5}:{6}{7}'.format(*tuple(crc)))
+	return 0
+
+if __name__ == '__main__':
+	sys.exit(main())
