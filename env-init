@@ -40,5 +40,8 @@ fi
 
 # prevent wine from adding menu entries and desktop links
 export WINEDLLOVERRIDES='winemenubuilder.exe=d'
+# switch to 32bit prefix
+export WINEPREFIX="$HOME/.local/share/wineprefixes/win32"
+export WINEARCH="win32"
 
 git-alias
