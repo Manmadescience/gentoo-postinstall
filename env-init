@@ -3,7 +3,7 @@
 # Save the current directory into a variable.
 # Source: http://stackoverflow.com/a/26384751/2650249
 function mark {
-    export $1=$(pwd);
+    export $1="$(pwd)"
 }
 
 function git-alias {
