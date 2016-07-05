@@ -1,0 +1,30 @@
+#!/bin/bash
+
+function writeconf {
+	# get gcc version formatted for build target
+	local GCC_VER=$(gcc --version | grep ^gcc | sed 's/^.* \([[:digit:]]\)\.\([[:digit:]]\)\.\([[:digit:]]\)$/\1\2/')
+	local CPUCNT=$($(which cat) /proc/cpuinfo | $(which grep) processor | $(which wc) -l)
+	echo "
+ACTIVE_PLATFORM = $WORKSPACE/OvmfPkg/OvmfPkgX64.dsc
+TARGET = RELEASE
+TARGET_ARCH = X64
+TOOL_CHAIN_CONF = $CONF_PATH/tools_def.txt
+TOOL_CHAIN_TAG = GCC$GCC_VER
+MAX_CONCURRENT_THREAD_NUMBER = $(($CPUCNT + 1))
+BUILD_RULE_CONF = $CONF_PATH/build_rule.txt" > $1
+}
+
+function compilebios {
+	mark HERE
+	git clone git://github.com/tianocore/edk2.git $1
+	cd $1
+	source $1/edksetup.sh
+	make -C $EDK_TOOLS_PATH
+	writeconf $CONF_PATH/target.txt
+	build
+	cp $WORKSPACE/Build/OvmfX64/RELEASE_GCC49/FV/OVMF.fd $HOME/bin/efi-bios.bin
+	cd "$HERE"
+}
+
+EDK2_TMP="/tmp/edk2"
+compilebios $EDK2_TMP
