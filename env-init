@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Save the current directory into a variable.
+# Source: http://stackoverflow.com/a/26384751/2650249
+function mark {
+    export $1=$(pwd);
+}
+
 function git-alias {
 	git config --global alias.lg '!git lg1'
 	git config --global alias.lg1 '!git lg1-specific --all'
