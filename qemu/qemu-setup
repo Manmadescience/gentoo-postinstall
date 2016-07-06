@@ -16,7 +16,7 @@ BUILD_RULE_CONF = $CONF_PATH/build_rule.txt" > $1
 
 function compilebios {
 	mark HERE
-	git clone git://github.com/tianocore/edk2.git $1
+	git clone https://github.com/tianocore/edk2.git $1
 	cd $1
 	source $1/edksetup.sh
 	make -C $EDK_TOOLS_PATH
