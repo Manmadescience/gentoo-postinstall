@@ -6,16 +6,6 @@ function mark {
     export $1="$(pwd)"
 }
 
-function git-alias {
-	git config --global alias.lg '!git lg1'
-	git config --global alias.lg1 '!git lg1-specific --all'
-	git config --global alias.lg2 '!git lg2-specific --all'
-	git config --global alias.lg3 '!git lg3-specific --all'
-	git config --global alias.lg1-specific "log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)'"
-	git config --global alias.lg2-specific "log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(reset) %C(bold green)(%ar)%C(reset)%C(bold yellow)%d%C(reset)%n''          %C(white)%s%C(reset) %C(dim white)- %an%C(reset)'"
-	git config --global alias.lg3-specific "log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(reset) %C(bold green)(%ar)%C(reset) %C(bold cyan)(committed: %cD)%C(reset) %C(bold yellow)%d%C(reset)%n''          %C(white)%s%C(reset)%n''          %C(dim white)- %an <%ae> %C(reset) %C(dim white)(committer: %cn <%ce>)%C(reset)'"
-}
-
 # set PATH so it includes user's private bin if it exists
 if [ -d "$HOME/bin" ] ; then
     PATH="$HOME/bin:$PATH"
@@ -34,6 +24,12 @@ source /etc/bash/bashrc.d/bash_completion.sh
 # also for sudo'ed commands
 complete -cf sudo
 
+# source aliases
+GIT_DIR=$(git rev-parse --show-toplevel)
+for f in "$GIT_DIR"/aliases/*; do
+	source "$f"
+done
+
 # show git branch in prompt:
 # include git script
 GIT_PROMPT="/usr/share/git/git-prompt.sh"
@@ -49,5 +45,3 @@ export WINEDLLOVERRIDES='winemenubuilder.exe=d'
 # switch to 32bit prefix
 export WINEPREFIX="$HOME/.local/share/wineprefixes/win32"
 export WINEARCH="win32"
-
-git-alias
