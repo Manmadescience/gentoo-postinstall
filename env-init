@@ -24,12 +24,6 @@ source /etc/bash/bashrc.d/bash_completion.sh
 # also for sudo'ed commands
 complete -cf sudo
 
-# source aliases
-GIT_DIR=$(git rev-parse --show-toplevel)
-for f in "$GIT_DIR"/aliases/*; do
-	source "$f"
-done
-
 # show git branch in prompt:
 # include git script
 GIT_PROMPT="/usr/share/git/git-prompt.sh"
