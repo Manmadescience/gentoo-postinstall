@@ -19,8 +19,8 @@ printf " \033[31m*\033[0m Version of kernel sources determined: $version\n"
 
 DSDT_SRC="/home/hoefling/programming/misc/msi-gx70-3cc-acpi-fixes/dsdt.hex"
 if [ -f "$DSDT_SRC" ]; then
+	DSDT_TARGET="$SOURCEDIR/dsdt_table.h"
 	printf " \033[31m*\033[0m Copying DSDT table patch...\n"
-	DSDT_TARGET="$SRCDIR/dsdt_table.h"
 	cp $DSDT_SRC $DSDT_TARGET
 fi
 
