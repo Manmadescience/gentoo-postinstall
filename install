@@ -55,7 +55,7 @@ rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 ebegin "Installing shared dir mounter"
 NM_CONF_DIR="/etc/NetworkManager/dispatcher.d/"
 POST_CONN_HOOK="$NM_CONF_DIR/99-mounter.sh"
-sudo cp -ax $GIT_DIR/networkmanager/mounter $POST_CONN_HOOK
+sudo cp -ax $GIT_DIR/network/mounter $POST_CONN_HOOK
 # change owner to root
 sudo chown root:root $POST_CONN_HOOK
 eend $?

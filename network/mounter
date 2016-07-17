@@ -3,13 +3,19 @@
 IF=$1
 STATUS=$2
 INTERFACE="enp0s25"
+USER="hoefling"
+USERHOME=$(getent passwd $USER | cut -d: -f6)
+DAVADDR="https://ox.netqa.de/servlet/webdav.infostore"
+DAVDIR="$USERHOME/dav"
 
 if [ "$IF" == "$INTERFACE" ]; then
 	case "$STATUS" in
 		up) # react on interface up
-		mount -a
+		#mount -a
+		mount -t davfs -o rw,user,uid=$USER,gid=$USER $DAVADDR $DAVDIR
 		;;
 		down) # react on interface down
+		umount $DAVDIR
 		;;
 		pre-up) # hook executed before interface is up
 		;;
