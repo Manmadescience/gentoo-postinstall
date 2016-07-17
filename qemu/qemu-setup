@@ -15,14 +15,16 @@ BUILD_RULE_CONF = $CONF_PATH/build_rule.txt" > $1
 }
 
 function compilebios {
+	SRCDIR="$1"
+	shift
 	mark HERE
-	git clone https://github.com/tianocore/edk2.git $1
-	cd $1
-	source $1/edksetup.sh
-	make -C $EDK_TOOLS_PATH
-	writeconf $CONF_PATH/target.txt
+	git clone https://github.com/tianocore/edk2.git "$SRCDIR"
+	cd "$SRCDIR"
+	source "$SRCDIR/edksetup.sh"
+	make -C "$EDK_TOOLS_PATH"
+	writeconf "$CONF_PATH/target.txt"
 	build
-	cp $WORKSPACE/Build/OvmfX64/RELEASE_GCC49/FV/OVMF.fd $HOME/bin/efi-bios.bin
+	cp "$WORKSPACE/Build/OvmfX64/RELEASE_GCC49/FV/OVMF.fd" $HOME/bin/efi-bios.bin
 	cd "$HERE"
 }
 
