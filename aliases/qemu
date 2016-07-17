@@ -1,20 +1,27 @@
 #!/bin/bash
+#			-drive file="$1",if=virtio \
+
 
 function _run {
+	EFIBIOS="$HOME/bin/efi-bios.bin"
+	if [ ! -f "$EFIBIOS" ]; then
+		echo -e "efi bios file not found!" && exit 1
+	fi
 	ARCH=$(uname -m)
 	qemu-system-$ARCH \
 			-enable-kvm \
-			-bios $HOME/bin/efi-bios.bin \
 			-cpu host \
 			-smp 2 \
 			-m 4G \
-			-drive file="$1",if=virtio \
+			-hda "$1" \
 			-netdev user,id=vmnic,hostname="vm-$(basename $1)" \
 			-device virtio-net,netdev=vmnic \
 			-monitor stdio \
 			-display sdl \
 			-vga cirrus \
-			-name "vm-$(basename $1)" $@
+			-name "vm-$(basename $1)" \
+			"${@:2}" \
+			-bios "$EFIBIOS"
 }
 
 alias qemu-run='_run'
