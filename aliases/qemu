@@ -1,27 +1,37 @@
 #!/bin/bash
 #			-drive file="$1",if=virtio \
 
-
 function _run {
-	EFIBIOS="$HOME/bin/efi-bios.bin"
-	if [ ! -f "$EFIBIOS" ]; then
-		echo -e "efi bios file not found!" && exit 1
+	ARCH=$(basename $1 | cut -d '-' -f 1)
+	NAME=$(basename $1 | cut -d '-' -f 2)
+
+	# take the current architecture if nothing found
+	if [ -z "$ARCH" ]; then
+		ARCH=$(uname -m)
 	fi
-	ARCH=$(uname -m)
+
+	ARG_BIOS=""
+	if [ "$ARCH" == "x86_64" ]; then
+		EFIBIOS="$HOME/bin/efi-bios-$ARCH.bin"
+		if [ ! -f "$EFIBIOS" ]; then
+			echo -e "efi bios file not found!" && return 1
+		fi
+		ARG_BIOS="-bios $EFIBIOS"
+	fi
 	qemu-system-$ARCH \
 			-enable-kvm \
+			$ARG_BIOS \
 			-cpu host \
 			-smp 2 \
 			-m 4G \
 			-hda "$1" \
-			-netdev user,id=vmnic,hostname="vm-$(basename $1)" \
+			-netdev user,id=vmnic,hostname="vm-$(basename $NAME)" \
 			-device virtio-net,netdev=vmnic \
 			-monitor stdio \
 			-display sdl \
 			-vga cirrus \
-			-name "vm-$(basename $1)" \
-			"${@:2}" \
-			-bios "$EFIBIOS"
+			-name "vm-$(basename $NAME)" \
+			"${@:2}"
 }
 
 alias qemu-run='_run'
