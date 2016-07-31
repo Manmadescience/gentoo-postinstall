@@ -17,11 +17,11 @@ die() {
 }
 
 warn() {
-	printf "\e[0;33mWARNING:\e[m %-6s" "${@+$@$'\n'}" 1>&2
+	printf "\e[0;33mWARNING:\e[m %-6s" "${@+$@$'\n'}"
 }
 
 info() {
-	printf "\e[0;32mINFO:\e[m %-6s" "${@+$@$'\n'}" 1>&2
+	printf "\e[0;32mINFO:\e[m %-6s" "${@+$@$'\n'}"
 }
 
 # verify some useful tools are present
@@ -33,7 +33,7 @@ if [ -z "$1" ]; then
 	warn "no directory containing virtual environments given, assuming current directory."
 	ENV_DIR=$(pwd)
 else
-	ENV_DIR=$1
+	ENV_DIR=$(readlink -f $1)
 fi
 
 THUNAR_ACTIONS_CONFIG="$HOME/.config/Thunar/uca.xml"
@@ -79,7 +79,7 @@ function action() {
 	local ENV_NAME=$1
 	local ENV_ACTIVATE=$ENV_DIR/$ENV_NAME/bin/activate
 	if [ -f "$ENV_ACTIVATE" ]; then
-		warn "$ENV_DIR/$ENV_NAME seems to be not a virtual environment; skipping."
+		(>&2 warn "$ENV_DIR/$ENV_NAME seems to be not a virtual environment; skipping.")
 	else
 		local ACTION=$(cat <<- EOM
 		\t\t<action>
