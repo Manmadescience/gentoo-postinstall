@@ -78,7 +78,7 @@ EOM
 function action() {
 	local ENV_NAME=$1
 	local ENV_ACTIVATE=$ENV_DIR/$ENV_NAME/bin/activate
-	if [ -f "$ENV_ACTIVATE" ]; then
+	if [ ! -f "$ENV_ACTIVATE" ]; then
 		(>&2 warn "$ENV_DIR/$ENV_NAME seems to be not a virtual environment; skipping.")
 	else
 		local ACTION=$(cat <<- EOM
