@@ -31,7 +31,7 @@ function _run {
 			-display sdl \
 			-vga cirrus \
 			-name "vm-$(basename $NAME)" \
-			"${@:2}"
+			"${@:2}" && echo
 }
 
 alias qemu-run='_run'
