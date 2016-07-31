@@ -85,7 +85,7 @@ function action() {
 		\t\t\t<icon/>
 		\t\t\t<name>Run with netqa-framework ($ENV_NAME)</name>
 		\t\t\t<unique-id>netqa-framework-$ENV_NAME</unique-id>
-		\t\t\t<command>exo-open --working-directory=%%d --launch TerminalEmulator "/usr/bin/env bash -c &quot;source $ENV_DIR/$ENV_NAME/bin/activate &amp;&amp; pwd &amp;&amp; which python &amp;&amp; python %%f; deactivate&quot;"</command>
+		\t\t\t<command>exo-open --working-directory=%%d --launch TerminalEmulator "/usr/bin/env bash -c \&quot;source $ENV_DIR/$ENV_NAME/bin/activate &amp;&amp; pwd &amp;&amp; which python &amp;&amp; python %%f; deactivate\&quot;"</command>
 		\t\t\t<description>Run with netqa-framework (code from $ENV_NAME environment)</description>
 		\t\t\t<patterns>*.py</patterns>
 		\t\t\t<startup-notify/>
