@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+# ------------------------------------------------------------------
+# Name: thunar-actions-updater
+# ------------------------------------------------------------------
+# Description: (Re)installs custom netqa framework-related actions
+# in Thunar file manager.
+# ------------------------------------------------------------------
+# Author: Oleg Hoefling (oleg.hoefling@netqa.de)
+# ------------------------------------------------------------------
+# Copyright (C) netqa GmbH (http://www.netqa.de)
+# ------------------------------------------------------------------
+
+if [ -z "$1" ]; then
+	printf "ERROR: directory expected.\n"
+fi
+
+HEAD=$(cat <<- EOM
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+\tGenerator of custom actions in Thunar file manager
+\t##################################################
+\tAuthor: Oleg Hoefling (oleg.hoefling@netqa.de)
+\t##################################################
+\tCopyright (C) netqa GmbH
+\tUnauthorized copying of this file, via any medium
+\tis strictly prohibited
+\t##################################################
+-->
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+\t<xsl:output method="xml" indent="yes" omit-xml-declaration="yes"/>
+\t<xsl:strip-space elements="*"/>
+EOM
+)
+
+TAIL=$(cat <<- EOM
+\t<xsl:template match="@* | node()">
+\t\t<xsl:copy>
+\t\t\t<xsl:apply-templates select="@* | node()"/>
+\t\t</xsl:copy>
+\t</xsl:template>
+\t<!-- remove all old netqa-framework actions -->
+\t<xsl:template match="/actions/action[unique-id[starts-with(., 'netqa-framework-')]]" />
+\t<!-- copy the rest and add all netqa-framework actions -->
+\t<xsl:template match="/actions">
+\t\t<xsl:copy>
+\t\t\t<xsl:apply-templates select="@* | node()"/>
+\t\t\t<xsl:copy-of select="\$custom_actions" />
+\t\t</xsl:copy>
+\t</xsl:template>
+</xsl:stylesheet>
+EOM
+)
+
+function action {
+	local ENV_NAME=$1
+	local ENV_ACTIVATE=$SHARED/$ENV_NAME/bin/activate
+	if [ -f "$ENV_ACTIVATE" ]; then
+		printf ""
+	else
+		local ACTION=$(cat <<- EOM
+		\t\t<action>
+		\t\t\t<icon/>
+		\t\t\t<name>Run with netqa-framework ($ENV_NAME)</name>
+		\t\t\t<unique-id>netqa-framework-$ENV_NAME</unique-id>
+		\t\t\t<command>exo-open --working-directory=%%d --launch TerminalEmulator "/usr/bin/env bash -c &quot;source $SHARED/$ENV_NAME/bin/activate &amp;&amp; pwd &amp;&amp; which python &amp;&amp; python %%f; deactivate&quot;"</command>
+		\t\t\t<description>Run with netqa-framework (code from $ENV_NAME environment)</description>
+		\t\t\t<patterns>*.py</patterns>
+		\t\t\t<startup-notify/>
+		\t\t\t<directories/>
+		\t\t\t<text-files/>
+		\t\t</action>
+		EOM
+		)
+		printf "$ACTION\n"
+	fi
+}
+
+SHARED=$1
+export -f action
+ACTIONS=$((cd $1 && find . -maxdepth 1 -type d) | tail -n +2 | cut -c 3- | sort | uniq | xargs -r -n 1 /usr/bin/env bash -c 'action "$@"' _)
+printf "$HEAD"
+printf "\t<xsl:variable name=\"custom_actions\">\n%s\n\t</xsl:variable>\n" "$ACTIONS"
+printf "$TAIL"
