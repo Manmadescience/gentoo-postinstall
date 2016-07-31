@@ -38,9 +38,9 @@ TAIL=$(cat <<- EOM
 \t\t\t<xsl:apply-templates select="@* | node()"/>
 \t\t</xsl:copy>
 \t</xsl:template>
-\t<!-- remove all old netqa-framework actions -->
+\t<xsl:comment> remove all old netqa-framework actions</xsl:comment>
 \t<xsl:template match="/actions/action[unique-id[starts-with(., 'netqa-framework-')]]" />
-\t<!-- copy the rest and add all netqa-framework actions -->
+\t<xsl:comment>copy the rest and add all netqa-framework actions</xsl:comment>
 \t<xsl:template match="/actions">
 \t\t<xsl:copy>
 \t\t\t<xsl:apply-templates select="@* | node()"/>
