@@ -20,12 +20,16 @@ XSLT_PROCESSOR=$(command -v xsltproc) || die "ERROR: xsltproc not found. Install
 XML_VALIDATOR=$(command -v xmllint) || die "ERROR: xmllint not found. Install libxml2 package."
 UUID_GENERATOR=$(command -v uuidgen) || die "ERROR: uuidgen not found. Install e2fsprogs package."
 
-[ -z "$1" ] && die "ERROR: directory containing python virtual environments expected."
-ENV_DIR=$1
+if [ -z "$1" ]; then
+	printf "WARNING: no directory containing virtual environments given, assuming current directory.\n"
+	ENV_DIR=$(pwd)
+else
+	ENV_DIR=$1
+fi
 
 THUNAR_ACTIONS_CONFIG="$HOME/.config/Thunar/uca.xml"
 [ -f "$THUNAR_ACTIONS_CONFIG" ] || die "ERROR: no config file for Thunar custom actions found. Check if Thunar is installed correctly."
-$XML_VALIDATOR $THUNAR_ACTIONS_CONFIG 2>/dev/null || die "ERROR: config file for Thunar custom actions is corrupted. Reinstall Thunar."
+$XML_VALIDATOR $THUNAR_ACTIONS_CONFIG 1>/dev/null 2>&1 || die "ERROR: config file for Thunar custom actions is corrupted. Reinstall Thunar."
 
 HEAD=$(cat <<- EOM
 <?xml version="1.0" encoding="UTF-8"?>
@@ -66,7 +70,7 @@ function action {
 	local ENV_NAME=$1
 	local ENV_ACTIVATE=$SHARED/$ENV_NAME/bin/activate
 	if [ -f "$ENV_ACTIVATE" ]; then
-		printf ""
+		printf "WARNING: %s seems to be not a virtual envronment; skipping.\n" $SHARED/$ENV_NAME
 	else
 		local ACTION=$(cat <<- EOM
 		\t\t<action>
