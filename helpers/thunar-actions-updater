@@ -12,24 +12,32 @@
 
 # just for convenience
 die() {
-	printf "%s" "${@+$@$'\n'}" 1>&2 ; exit 1;
+	printf "\e[0;31mERROR:\e[m %-6s" "${@+$@$'\n'}" 1>&2 ; exit 1;
+}
+
+warn() {
+	printf "\e[0;33mWARNING:\e[m %-6s" "${@+$@$'\n'}" 1>&2
+}
+
+info() {
+	printf "\e[0;32mINFO:\e[m %-6s" "${@+$@$'\n'}" 1>&2
 }
 
 # verify some useful tools are present
-XSLT_PROCESSOR=$(command -v xsltproc) || die "ERROR: xsltproc not found. Install libxslt package."
-XML_VALIDATOR=$(command -v xmllint) || die "ERROR: xmllint not found. Install libxml2 package."
-UUID_GENERATOR=$(command -v uuidgen) || die "ERROR: uuidgen not found. Install e2fsprogs package."
+XSLT_PROCESSOR=$(command -v xsltproc) || die "xsltproc not found. Install libxslt package."
+XML_VALIDATOR=$(command -v xmllint) || die "xmllint not found. Install libxml2 package."
+UUID_GENERATOR=$(command -v uuidgen) || die "uuidgen not found. Install e2fsprogs package."
 
 if [ -z "$1" ]; then
-	printf "WARNING: no directory containing virtual environments given, assuming current directory.\n"
+	warn "no directory containing virtual environments given, assuming current directory."
 	ENV_DIR=$(pwd)
 else
 	ENV_DIR=$1
 fi
 
 THUNAR_ACTIONS_CONFIG="$HOME/.config/Thunar/uca.xml"
-[ -f "$THUNAR_ACTIONS_CONFIG" ] || die "ERROR: no config file for Thunar custom actions found. Check if Thunar is installed correctly."
-$XML_VALIDATOR $THUNAR_ACTIONS_CONFIG 1>/dev/null 2>&1 || die "ERROR: config file for Thunar custom actions is corrupted. Reinstall Thunar."
+[ -f "$THUNAR_ACTIONS_CONFIG" ] || die "no config file for Thunar custom actions found. Check if Thunar is installed correctly."
+$XML_VALIDATOR $THUNAR_ACTIONS_CONFIG 1>/dev/null 2>&1 || die "config file for Thunar custom actions is corrupted. Reinstall Thunar."
 
 HEAD=$(cat <<- EOM
 <?xml version="1.0" encoding="UTF-8"?>
@@ -66,11 +74,11 @@ TAIL=$(cat <<- EOM
 EOM
 )
 
-function action {
+function action() {
 	local ENV_NAME=$1
 	local ENV_ACTIVATE=$SHARED/$ENV_NAME/bin/activate
 	if [ -f "$ENV_ACTIVATE" ]; then
-		printf "WARNING: %s seems to be not a virtual envronment; skipping.\n" $SHARED/$ENV_NAME
+		warn "$SHARED/$ENV_NAME seems to be not a virtual envronment; skipping.\n"
 	else
 		local ACTION=$(cat <<- EOM
 		\t\t<action>
@@ -90,7 +98,7 @@ function action {
 	fi
 }
 
-function generate_stylesheet {
+function generate_stylesheet() {
 	export -f action
 	ACTIONS=$((cd $ENV_DIR && find . -maxdepth 1 -type d) | tail -n +2 | cut -c 3- | sort | uniq | xargs -r -n 1 /usr/bin/env bash -c 'action "$@"' _)
 	printf "$HEAD\n"
@@ -101,5 +109,5 @@ function generate_stylesheet {
 STYLESHEET=/tmp/$($UUID_GENERATOR).xsl
 generate_stylesheet > $STYLESHEET
 $XSLT_PROCESSOR -o $THUNAR_ACTIONS_CONFIG $STYLESHEET $THUNAR_ACTIONS_CONFIG
-[ $? -ne 0 ] && die "ERROR: something went wrong, please contact the author."
-printf "INFO: Scanned %s, custom Thunar actions installed.\n" $ENV_DIR
+[ $? -ne 0 ] && die "something went wrong, please contact the author."
+info "scanned $ENV_DIR, custom Thunar actions installed."
