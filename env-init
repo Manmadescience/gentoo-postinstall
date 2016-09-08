@@ -65,4 +65,4 @@ export WINEDLLOVERRIDES='winemenubuilder.exe=d'
 export WINEPREFIX="$HOME/.local/share/wineprefixes/win32"
 export WINEARCH="win32"
 
-append-netqa-paths
+#append-netqa-paths
