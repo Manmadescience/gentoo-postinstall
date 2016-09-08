@@ -5,17 +5,34 @@ STATUS=$2
 INTERFACE="enp0s25"
 USER="hoefling"
 USERHOME=$(getent passwd $USER | cut -d: -f6)
-DAVADDR="https://ox.netqa.de/servlet/webdav.infostore"
-DAVDIR="$USERHOME/dav"
+SMB_CREDS="$USERHOME/.netqa/.smbcredentials"
+#MOUNTROOT=$USERHOME
+MOUNTROOT="/mnt/master"
+
+# local mountpoints
+OX="$MOUNTROOT/shared/dav"
+TEST_ENV="$MOUNTROOT/shared/test_environment"
+STORAGE="$MOUNTROOT/shared/storage"
+ENV="$MOUNTROOT/shared/env"
+FRAMEWORK="$MOUNTROOT/shared/framework"
+PROJECTS="$MOUNTROOT/shared/projects"
+TESTTOOLS="$MOUNTROOT/shared/testtools"
+TESTIMPL="$MOUNTROOT/shared/testimplementation"
+DOCS="$MOUNTROOT/shared/sphinx_docs"
 
 if [ "$IF" == "$INTERFACE" ]; then
 	case "$STATUS" in
 		up) # react on interface up
-		#mount -a
-		mount -t davfs -o rw,user,uid=$USER,gid=$USER $DAVADDR $DAVDIR
+		mount -t davfs -o rw,user,uid=$USER,gid=$USER https://ox.netqa.de/servlet/webdav.infostore $OX
+		for m in {//172.16.132.1/Testumgebung\ $TEST_ENV,//172.16.132.1/Storage\ $STORAGE,//master.qanet.local/env\ $ENV,//master.qanet.local/FrameWork\ $FRAMEWORK,//master.qanet.local/Projects\ $PROJECTS,//master.qanet.local/TestTools\ $TESTTOOLS,//master.qanet.local/TestImplementation\ $TESTIMPL,//master.qanet.local/sphinx_docs\ $DOCS}
+		do
+				set -- $m
+				logger "mounting: $1 to $2"
+				mount -t cifs -o rw,_netdev,credentials=$SMB_CREDS $1 $2
+		done
 		;;
 		down) # react on interface down
-		umount $DAVDIR
+		#umount $DAVDIR
 		;;
 		pre-up) # hook executed before interface is up
 		;;
