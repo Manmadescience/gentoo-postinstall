@@ -10,15 +10,19 @@ SMB_CREDS="$USERHOME/.netqa/.smbcredentials"
 MOUNTROOT="/mnt/master"
 
 # local mountpoints
-OX="$MOUNTROOT/shared/dav"
-TEST_ENV="$MOUNTROOT/shared/test_environment"
-STORAGE="$MOUNTROOT/shared/storage"
-ENV="$MOUNTROOT/shared/env"
-FRAMEWORK="$MOUNTROOT/shared/framework"
-PROJECTS="$MOUNTROOT/shared/projects"
-TESTTOOLS="$MOUNTROOT/shared/testtools"
-TESTIMPL="$MOUNTROOT/shared/testimplementation"
-DOCS="$MOUNTROOT/shared/sphinx_docs"
+OX="$MOUNTROOT/dav"
+TEST_ENV="$MOUNTROOT/test_environment"
+STORAGE="$MOUNTROOT/storage"
+ENV="$MOUNTROOT/env"
+FRAMEWORK="$MOUNTROOT/framework"
+PROJECTS="$MOUNTROOT/projects"
+TESTTOOLS="$MOUNTROOT/testtools"
+TESTIMPL="$MOUNTROOT/testimplementation"
+DOCS="$MOUNTROOT/sphinx_docs"
+
+for m in {$OX,$TEST_ENV,$STORAGE,$ENV,$FRAMEWORK,$PROJECTS,$TESTTOOLS,$TESTIMPL,$DOCS,}; do
+	[ ! -d "$m" ] && mkdir -p $m
+done
 
 if [ "$IF" == "$INTERFACE" ]; then
 	case "$STATUS" in
@@ -28,7 +32,7 @@ if [ "$IF" == "$INTERFACE" ]; then
 		do
 				set -- $m
 				logger "mounting: $1 to $2"
-				mount -t cifs -o rw,_netdev,credentials=$SMB_CREDS $1 $2
+				mount -t cifs -o rw,_netdev,user,exec,uid=$USER,gid=$USER,credentials=$SMB_CREDS $1 $2
 		done
 		;;
 		down) # react on interface down
