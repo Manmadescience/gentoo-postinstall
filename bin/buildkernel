@@ -1,6 +1,6 @@
 #!/bin/bash
 
-_rc_fns="/etc/init.d/functions.shs"
+_rc_fns="/etc/init.d/functions.sh"
 _rc_fns_fallback="/etc/init.d/functions"
 if [ -f "$_rc_fns" ]; then
 	source $_rc_fns
