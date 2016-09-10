@@ -1,0 +1,78 @@
+#!/usr/bin/python
+import datetime
+import logging
+import openpyxl
+import os
+import re
+import subprocess
+import sys
+
+logger = logging.getLogger(__name__)
+col_date = 'A'
+col_start = 'B'
+col_end = 'C'
+col_pause = 'D'
+col_project = 'F'
+col_notes = 'H'
+
+def init():
+	# configure simple logger
+	logger.setLevel(logging.INFO)
+	handler = logging.StreamHandler()
+	handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+	logger.addHandler(handler)
+
+def main():
+	init()
+#	davdir = os.path.join('/', 'home', 'hoefling', 'dav')
+#	xlsfile = os.path.join(davdir, 'Userstore', 'Oleg Höfling', 'Documents', 'Projektzeiterfassung_OlegHoefling_2016.xlsx')
+	davdir = os.path.join('/', 'home', 'hoefling')
+	xlsfile = os.path.join(davdir, 'Projektzeiterfassung_OlegHoefling_2016.xlsx')
+	if not os.path.isfile(xlsfile):
+		logger.error('File not found.')
+		return 1
+
+	wb = openpyxl.load_workbook(xlsfile, data_only=True)
+	now = datetime.datetime.now()
+	sheet = wb.get_sheet_by_name('{month}.{year}'.format(month=now.strftime('%m'), year=now.year))
+
+	cell = sheet['{col}{row}'.format(col=col_start, row=24)]
+	logger.info('current value: {0}, format: {1}'.format(cell.value, cell.number_format))
+
+	# find date cell
+	for row in range(1, 50):
+		val = sheet['{col}{row}'.format(col=col_date,row=row)].value
+		logger.info(val)
+		if type(val) is datetime.datetime and val.day == now.day:
+			logger.info('row: {0}'.format(row))
+			break
+	res = subprocess.run(['last', 'reboot'], stdout=subprocess.PIPE, check=True, universal_newlines=True)
+	out = res.stdout
+	lines = out.splitlines()
+#	date_filter = re.compile('^.*{month}\s+{day}.*$'.format(month=now.strftime('%b'), day=now.day))
+	date_filter = re.compile('^.*{month}\s+{day}.*$'.format(month=now.strftime('%b'), day=4))
+	durations = [parse_timedelta(line) for line in lines if date_filter.match(line)]
+	start = min(d[0] for d in durations)
+	end = max(d[1] for d in durations)
+	logger.info('{start}, {end}'.format(start=start, end=end))
+	wb = openpyxl.load_workbook(xlsfile, data_only=False)
+#	format = 'h:mm;@'
+#	sheet['{col}{row}'.format(col=col_start, row=row)].number_format = format
+	sheet['{col}{row}'.format(col=col_start, row=row)].value = start
+#	sheet['{col}{row}'.format(col=col_end, row=row)].number_format = format
+	sheet['{col}{row}'.format(col=col_end, row=row)].value = end
+	wb.save(xlsfile)
+#	wb.save('/home/hoefling/dav/Userstore/Oleg Höfling/Documents/test.xlsx')
+#	wb = openpyxl.load_workbook(xlsfile, data_only=False)
+#	logger.info(sheet['{col}{row}'.format(col=col_start, row=row)].value)
+	return 0
+
+def parse_timedelta(str=''):
+	time_group = '(\d{2}:\d{2})'
+	clean = re.sub('\s+still running', datetime.datetime.today().strftime(' - %H:%M'), str)
+	time_filter = re.compile('^.*\s{time}\s+-\s+{time}.*$'.format(time=time_group))
+	range = time_filter.match(clean).groups()
+	return tuple(map(lambda date: datetime.time(date.hour, date.minute), map(lambda str: datetime.datetime.strptime(str, '%H:%M'), range)))
+
+if __name__ == '__main__':
+	sys.exit(main())
