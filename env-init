@@ -2,10 +2,16 @@
 
 # Save the current directory into a variable.
 # Source: http://stackoverflow.com/a/26384751/2650249
-function mark {
+function mark () {
     export $1="$(pwd)"
 }
-export -f mark
+
+# checks if a function exists.
+# source: http://stackoverflow.com/questions/85880/
+function fn_exists () {
+    type -t $1 | grep -q 'function'
+}
+export -f mark fn_exists
 
 # set PATH so it includes user's private bin if it exists
 if [ -d "$HOME/bin" ] ; then
