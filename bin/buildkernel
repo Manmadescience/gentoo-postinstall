@@ -73,14 +73,7 @@ make silentoldconfig
 eend $?
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 
-ebegin "Copying DSDT table patch"
-_dsdt_patch="/home/hoefling/programming/misc/msi-gx70-3cc-acpi-fixes/dsdt.hex"
-_dsdt_target="$_sourcedir/dsdt_table.h"
-cp $_dsdt_patch $_dsdt_target
-eend $?
-rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
-
-ebegin "Compiling kernel sources"
+ebegin "Compiling kernel sources with existing config"
 make -j5 > /dev/null
 eend $?
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
