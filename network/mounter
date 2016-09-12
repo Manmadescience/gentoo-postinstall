@@ -2,7 +2,8 @@
 
 IF=$1
 STATUS=$2
-INTERFACE="enp0s25"
+#INTERFACE="enp0s25"
+INTERFACE="tun0"
 USER="hoefling"
 USERHOME=$(getent passwd $USER | cut -d: -f6)
 SMB_CREDS="$USERHOME/.netqa/.smbcredentials"
@@ -17,7 +18,7 @@ ENV="$MOUNTROOT/env"
 FRAMEWORK="$MOUNTROOT/framework"
 PROJECTS="$MOUNTROOT/projects"
 TESTTOOLS="$MOUNTROOT/testtools"
-TESTIMPL="$MOUNTROOT/testimplementation"
+TESTIMPL="$MOUNTROOT/test_implementation"
 DOCS="$MOUNTROOT/sphinx_docs"
 
 for m in {$OX,$TEST_ENV,$STORAGE,$ENV,$FRAMEWORK,$PROJECTS,$TESTTOOLS,$TESTIMPL,$DOCS,}; do
@@ -28,7 +29,7 @@ if [ "$IF" == "$INTERFACE" ]; then
 	case "$STATUS" in
 		up) # react on interface up
 		mount -t davfs -o rw,user,uid=$USER,gid=$USER https://ox.netqa.de/servlet/webdav.infostore $OX
-		for m in {//172.16.132.1/Testumgebung\ $TEST_ENV,//172.16.132.1/Storage\ $STORAGE,//master.qanet.local/env\ $ENV,//master.qanet.local/FrameWork\ $FRAMEWORK,//master.qanet.local/Projects\ $PROJECTS,//master.qanet.local/TestTools\ $TESTTOOLS,//master.qanet.local/TestImplementation\ $TESTIMPL,//master.qanet.local/sphinx_docs\ $DOCS}
+		for m in {//172.16.132.1/Testumgebung\ $TEST_ENV,//172.16.132.1/Storage\ $STORAGE,//master.qanet.local/testenv\ $ENV,//master.qanet.local/FrameWork\ $FRAMEWORK,//master.qanet.local/Projects\ $PROJECTS,//master.qanet.local/TestTools\ $TESTTOOLS,//master.qanet.local/TestImplementation\ $TESTIMPL,//master.qanet.local/sphinx_docs\ $DOCS}
 		do
 				set -- $m
 				logger "mounting: $1 to $2"
