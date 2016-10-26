@@ -69,7 +69,7 @@ eend $?
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 
 ebegin "Applying kernel conf"
-make silentoldconfig > /dev/null
+make silentoldconfig
 eend $?
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 
