@@ -21,7 +21,34 @@ else
 	einfo "init.d functions not found, using custom fallback."
 fi
 
+_kernel_conf_dir=""
+_kernel_conf="$_kernel_conf_dir"/config.$(hostname)
 
+ebegin "Checking if any kernel sources available"
+_kernels=$(eselect kernel list | tail -n +2 | wc -l)
+rc=0
+[ "$_kernels" -lt 0 ] && rc=1
+eend $rc
+if [[ $rc != 0 ]]; then exit $rc; fi
+
+ebegin "Selecting latest kernel sources available"
+eselect kernel list | tail -1 | awk -F ' ' '{print $2}' | xargs sudo eselect kernel set
+#_kernel_targets=$(eselect kernel list | tail -1 | awk -F ' ' '{print $2}')
+eend $?
+rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
+einfo "Selected kernel:" $(eselect kernel show | tail -1 | awk -F '/' '{print $4}')
+
+ebegin "Checking if kernel conf dir present"
+rc=0
+[ -d "$_kernel_conf_dir" ] || rc=1
+eend $rc
+if [[ $rc != 0 ]]; then exit $rc; fi
+
+ebegin "Checking if kernel conf present"
+rc=0
+[ -f "$_kernel_conf" ] || rc=1
+eend $rc
+if [[ $rc != 0 ]]; then exit $rc; fi
 
 ebegin "Entering linux source dir"
 _sourcedir="/usr/src/linux"
@@ -33,7 +60,18 @@ ebegin "Determining kernel source version"
 version=$(make kernelversion)
 eend $?
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
-einfo "Kernel source version: $version"
+einfo "Kernel source version:" $version
+
+ebegin "Copying kernel conf"
+_conf_target="$_sourcedir/.config"
+cp --force --preserve=all $_kernel_conf $_conf_target
+eend $?
+rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
+
+ebegin "Applying kernel conf"
+make silentoldconfig > /dev/null
+eend $?
+rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 
 ebegin "Copying DSDT table patch"
 _dsdt_patch="/home/hoefling/programming/misc/msi-gx70-3cc-acpi-fixes/dsdt.hex"
@@ -42,7 +80,7 @@ cp $_dsdt_patch $_dsdt_target
 eend $?
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 
-ebegin "Compiling kernel sources with existing config"
+ebegin "Compiling kernel sources"
 make -j5 > /dev/null
 eend $?
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
