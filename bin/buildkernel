@@ -57,10 +57,10 @@ eend $?
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 
 ebegin "Determining kernel source version"
-version=$(make kernelversion)
+_version=$(make kernelversion)
 eend $?
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
-einfo "Kernel source version:" $version
+einfo "Kernel source version:" $_version
 
 ebegin "Copying kernel conf"
 _conf_target="$_sourcedir/.config"
@@ -92,7 +92,7 @@ eend $?
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 
 ebegin "Copying kernel to boot dir"
-cp /boot/vmlinuz-$version /boot/efi/boot/bootx64.efi
+cp /boot/vmlinuz-$_version /boot/efi/boot/bootx64.efi
 eend $?
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 
@@ -112,4 +112,30 @@ make modules_prepare 1> /dev/null && emerge @module-rebuild 1> /dev/null
 eend $?
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 
-einfo "Kernel compiled, you may reboot now."
+einfo "Kernel compiled."
+
+ebegin "Checking kernel conf for differences"
+_changes=$(diff $_kernel_conf $_conf_target)
+eend $?
+rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
+
+if [ -z "$_changes" ]; then
+	einfo "No kernel conf changes detected."
+else
+	ebegin "Kernel conf changes detected; committing"
+	_git="git -C $_kernel_conf_dir"
+	_branch="buildkernel"
+	$_git reset &> /dev/null \
+		&& cp --force --no-preserve=all $_conf_target $_kernel_conf \
+		&& $_git checkout -b $_branch &> /dev/null \
+		&& $_git add $_kernel_conf &> /dev/null \
+		&& $_git commit -m "[$_branch] linux-$_version kernel conf changed" &> /dev/null \
+		&& $_git checkout master &> /dev/null \
+		&& $_git merge --no-ff --no-edit $_branch &> /dev/null \
+		&& $_git push origin master &> /dev/null \
+		&& $_git branch -d $_branch &> /dev/null
+	eend $?
+	rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
+fi
+
+einfo "All done. You may reboot now."
