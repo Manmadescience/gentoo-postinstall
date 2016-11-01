@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #			-drive file="$1",if=virtio \
 
 function _run {
