@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 git config --global alias.lg '!git lg1'
 git config --global alias.lg1 '!git lg1-specific --all'

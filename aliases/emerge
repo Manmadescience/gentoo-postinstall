@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+alias emerge-update='sudo emerge --ask --update --deep --with-bdeps\=y --newuse --changed-use --complete-graph @world $@'
