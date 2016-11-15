@@ -115,17 +115,16 @@ rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 einfo "Kernel compiled."
 
 ebegin "Checking kernel conf for differences"
-_changes=$(diff $_kernel_conf $_conf_target)
+diff $_kernel_conf $_conf_target > /dev/null
+_changes=$?
 eend $?
-rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
+rc=$_changes; if [[ $rc == 2 ]]; then exit $rc; fi
 
-if [ -z "$_changes" ]; then
-	einfo "No kernel conf changes detected."
-else
+if [ ! -z "$_changes" ]; then
 	ebegin "Kernel conf changes detected; committing"
 	_git="git -C $_kernel_conf_dir"
 	_branch="buildkernel"
-	$_git reset &> /dev/null \
+	$_git reset . &> /dev/null \
 		&& cp --force --no-preserve=all $_conf_target $_kernel_conf \
 		&& $_git checkout -b $_branch &> /dev/null \
 		&& $_git add $_kernel_conf &> /dev/null \
