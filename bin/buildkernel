@@ -120,7 +120,7 @@ _changes=$?
 eend $?
 rc=$_changes; if [[ $rc == 2 ]]; then exit $rc; fi
 
-if [ ! -z "$_changes" ]; then
+if [ "$_changes" -gt 0 ]; then
 	ebegin "Kernel conf changes detected; committing"
 	_git="git -C $_kernel_conf_dir"
 	_branch="buildkernel"
