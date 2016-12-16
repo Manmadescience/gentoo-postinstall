@@ -1,50 +1,99 @@
-#!/bin/bash
+#!/usr/bin/env python3
 
-IF=$1
-STATUS=$2
-#INTERFACE="enp0s25"
-INTERFACE="tun0"
-USER="hoefling"
-USERHOME=$(getent passwd $USER | cut -d: -f6)
-SMB_CREDS="$USERHOME/.netqa/.smbcredentials"
-#MOUNTROOT=$USERHOME
-MOUNTROOT="/mnt/master"
+import os
+import argparse
+import enum
+import sys
+import libmount
 
-# local mountpoints
-OX="$MOUNTROOT/dav"
-TEST_ENV="$MOUNTROOT/test_environment"
-STORAGE="$MOUNTROOT/storage"
-ENV="$MOUNTROOT/env"
-FRAMEWORK="$MOUNTROOT/framework"
-PROJECTS="$MOUNTROOT/projects"
-TESTTOOLS="$MOUNTROOT/testtools"
-TESTIMPL="$MOUNTROOT/test_implementation"
-DOCS="$MOUNTROOT/sphinx_docs"
 
-for m in {$OX,$TEST_ENV,$STORAGE,$ENV,$FRAMEWORK,$PROJECTS,$TESTTOOLS,$TESTIMPL,$DOCS,}; do
-	[ ! -d "$m" ] && mkdir -p $m
-done
+# $ nmcli connection show
+uuids = [
+    '06fcce0f-607a-45c1-81b5-1772be037f3b'
+]
+conn_names = [
+    'netqa'
+]
 
-if [ "$IF" == "$INTERFACE" ]; then
-	case "$STATUS" in
-		up) # react on interface up
-		mount -t davfs -o rw,user,uid=$USER,gid=$USER https://ox.netqa.de/servlet/webdav.infostore $OX
-		for m in {//172.16.132.1/Testumgebung\ $TEST_ENV,//172.16.132.1/Storage\ $STORAGE,//master.qanet.local/testenv\ $ENV,//master.qanet.local/FrameWork\ $FRAMEWORK,//master.qanet.local/Projects\ $PROJECTS,//master.qanet.local/TestTools\ $TESTTOOLS,//master.qanet.local/TestImplementation\ $TESTIMPL,//master.qanet.local/sphinx_docs\ $DOCS}
-		do
-				set -- $m
-				logger "mounting: $1 to $2"
-				mount -t cifs -o rw,_netdev,user,exec,uid=$USER,gid=$USER,credentials=$SMB_CREDS $1 $2
-		done
-		;;
-		down) # react on interface down
-		#umount $DAVDIR
-		;;
-		pre-up) # hook executed before interface is up
-		;;
-		post-down) # post-down hook
-		;;
-		*) # ignore on default
-		;;
-	esac
-fi
-exit 0
+user = 'hoefling'
+
+network_root = os.path.join('//', 'master.qanet.local')
+mount_root = os.path.join('/', 'mnt', 'master')
+samba_creds = os.path.join('/', 'home', 'hoefling', '.netqa', 'smbcredentials')
+
+
+########################################################################
+class State(enum.Enum):
+    '''Connection states'''
+    up = 'up'
+    down = 'down'
+    pre_up = 'pre-up'
+    post_down = 'post-down'
+    pre_down = 'pre-down'
+
+#----------------------------------------------------------------------
+def mkcifs(source: str, target: str) -> libmount.Context:
+    ''''''
+    ctx = libmount.Context()
+    ctx.fstype = 'cifs'
+    ctx.options = (
+        'rw,_netdev,user,exec,uid={user},'
+        'gid={user},credentials={creds}'
+    ).format(user=user, creds=samba_creds)
+    ctx.source = source
+    ctx.target = target
+    return ctx
+
+#----------------------------------------------------------------------
+def unmounter() -> libmount.Context:
+    ''''''
+    ctx = libmount.Context()
+    ##cxt.enable_force(True)
+    cxt.enable_lazy(True)
+    cxt.options = 'cifs'
+    return ctx
+
+#----------------------------------------------------------------------
+def main():
+    '''entry point'''
+
+    # this won't work as mount is only possible after tun0 is connected
+##    if 'CONNECTION_ID' not in os.environ or os.environ['CONNECTION_ID'] not in conn_names:
+##        return 0
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('connstate', nargs='+')
+    args = parser.parse_args()
+    if not args.connstate or len(args.connstate) < 2:
+        return 1
+
+    interface = args.connstate[0]
+    state = State(args.connstate[1])
+
+    if interface == 'tun0' and state == State.up:
+
+        cifs = [
+            mkcifs(os.path.join('//', '172.16.132.1', 'Testumgebung'), os.path.join(mount_root, 'test_environment')),
+            mkcifs(os.path.join('//', '172.16.132.1', 'Storage'), os.path.join(mount_root, 'storage')),
+            mkcifs(os.path.join(network_root, 'testenv'), os.path.join(mount_root, 'env')),
+            mkcifs(os.path.join(network_root, 'TestTools'), os.path.join(mount_root, 'testtools')),
+            mkcifs(os.path.join(network_root, 'FrameWork'), os.path.join(mount_root, 'framework')),
+            mkcifs(os.path.join(network_root, 'Projects'), os.path.join(mount_root, 'projects')),
+            mkcifs(os.path.join(network_root, 'TestImplementation'), os.path.join(mount_root, 'test_implementation')),
+            mkcifs(os.path.join(network_root, 'sphinx_docs'), os.path.join(mount_root, 'sphinx_docs')),
+        ]
+
+        for ctx in cifs:
+            if not os.path.isdir(ctx.target):
+                os.makedirs(ctx.target)
+            ctx.mount()
+
+##    if interface == 'tun0' and state == State.pre_down:
+    if state == State.pre_down:
+        unmounter().umount()
+
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())
