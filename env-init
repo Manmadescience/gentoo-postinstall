@@ -46,3 +46,9 @@ export WINEDLLOVERRIDES='winemenubuilder.exe=d'
 # switch to 32bit prefix
 export WINEPREFIX="$HOME/.local/share/wineprefixes/win32"
 export WINEARCH="win32"
+
+# enable virtualenvwrapper
+export PROJECT_HOME="$HOME/projects"
+export WORKON_HOME="$PROJECT_HOME/.venvs"
+VENVWRAPPER="/usr/bin/virtualenvwrapper.sh"
+[ -f "$VENVWRAPPER" ] && source "$VENVWRAPPER"
