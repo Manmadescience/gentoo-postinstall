@@ -1,3 +1,4 @@
 #!/usr/bin/env bash
 
-alias sudo='sudo '
+alias sudo='sudo '  # to resolve aliased commands when running under sudo
+alias mount='mount | column -t'  # format raw mount output
