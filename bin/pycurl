@@ -7,7 +7,7 @@ Basically, this is nothing but
 
    $ curl ${CURL_ARGS} | python -mjson.tool | pygmentize -l json
 
-but with python. I don't want to battle bash on reinterpreting
+only in python. I don't want to battle bash on reinterpreting
 quoted cURL args when trying to wrap this into a script
 or aliasing it.
 
@@ -21,10 +21,13 @@ Example usage:
    $ pycurl -i -H "Authorization: JWT my-token" http://localhost:8000/api/v2/projects/1/testcases/
    $ pycurl -X PATCH -H "Authorization: JWT my-token" -d '{"name": "foo"}' http://localhost:8000/api/v2/projects/1/testcases/1/
 
-`Content-Type: application/json` will be inserted automatically
-if not passed via cli.
+The header `Content-Type: application/json` will be inserted
+automatically if not passed via cli.
 
-Disclaimer: no warranty whatsoever, you at your own risk.
+Disclaimer: no warranty whatsoever, use at your own risk.
+
+TODO: replace mimicking ``pygmentize`` cli call with calling
+the appropriate pygments function.
 '''
 
 
