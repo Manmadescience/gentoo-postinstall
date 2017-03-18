@@ -1,9 +1,11 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.5
 
 import os
 import argparse
 import enum
 import sys
+import syslog
+import time
 import libmount
 
 
@@ -30,6 +32,10 @@ class State(enum.Enum):
     pre_up = 'pre-up'
     post_down = 'post-down'
     pre_down = 'pre-down'
+    vpn_up = 'vpn-up'
+    vpn_down = 'vpn-down'
+    vpn_pre_up = 'vpn-pre-up'
+    vpn_pre_down = 'vpn-pre-down'
 
 #----------------------------------------------------------------------
 def mkcifs(source: str, target: str) -> libmount.Context:
@@ -45,17 +51,21 @@ def mkcifs(source: str, target: str) -> libmount.Context:
     return ctx
 
 #----------------------------------------------------------------------
-def unmounter() -> libmount.Context:
+def unmounter(source: str) -> libmount.Context:
     ''''''
     ctx = libmount.Context()
-    ##cxt.enable_force(True)
-    cxt.enable_lazy(True)
-    cxt.options = 'cifs'
+    ctx.enable_force(True)
+    ##ctx.enable_lazy(True)
+    ctx.options = 'cifs'
+    ctx.source = source
+    ctx.target = source
     return ctx
 
 #----------------------------------------------------------------------
 def main():
     '''entry point'''
+
+    syslog.syslog('mounter started ...')
 
     # this won't work as mount is only possible after tun0 is connected
 ##    if 'CONNECTION_ID' not in os.environ or os.environ['CONNECTION_ID'] not in conn_names:
@@ -70,9 +80,10 @@ def main():
     interface = args.connstate[0]
     state = State(args.connstate[1])
 
-    if interface == 'tun0' and state == State.up:
+    if interface == 'tun0' and state == State.vpn_up:
+        syslog.syslog('mounting network shares ...')
 
-        cifs = [
+        mounts = [
             mkcifs(os.path.join('//', '172.16.132.1', 'Testumgebung'), os.path.join(mount_root, 'test_environment')),
             mkcifs(os.path.join('//', '172.16.132.1', 'Storage'), os.path.join(mount_root, 'storage')),
             mkcifs(os.path.join(network_root, 'testenv'), os.path.join(mount_root, 'env')),
@@ -83,15 +94,35 @@ def main():
             mkcifs(os.path.join(network_root, 'sphinx_docs'), os.path.join(mount_root, 'sphinx_docs')),
         ]
 
-        for ctx in cifs:
-            if not os.path.isdir(ctx.target):
-                os.makedirs(ctx.target)
-            ctx.mount()
+        try:
+            for ctx in mounts:
+                if not os.path.isdir(ctx.target):
+                    os.makedirs(ctx.target)
+                ctx.mount()
+        except Exception as error:
+            syslog.syslog(str(error))
+        time.sleep(5)
 
-##    if interface == 'tun0' and state == State.pre_down:
-    if state == State.pre_down:
-        unmounter().umount()
+    if interface == 'tun0' and state == State.vpn_down:
+        syslog.syslog('unmounting network shares ...')
+        try:
+            mounts = [
+                unmounter(os.path.join('//', '172.16.132.1', 'Testumgebung')),
+                unmounter(os.path.join('//', '172.16.132.1', 'Storage')),
+                unmounter(os.path.join(network_root, 'testenv')),
+                unmounter(os.path.join(network_root, 'TestTools')),
+                unmounter(os.path.join(network_root, 'FrameWork')),
+                unmounter(os.path.join(network_root, 'Projects')),
+                unmounter(os.path.join(network_root, 'TestImplementation')),
+                unmounter(os.path.join(network_root, 'sphinx_docs')),
+            ]
+            for ctx in mounts:
+                ctx.umount()
+        except Exception as error:
+            syslog.syslog(str(error))
+        time.sleep(5)
 
+    syslog.syslog('mounter finished')
     return 0
 
 
