@@ -92,32 +92,26 @@ def main() -> int:
         network_root2 / 'Storage': mount_root / 'storage',
     }
 
-    syslog.syslog(sorted(mount_mapping.keys()))
-
     if interface == 'tun0' and state == State.vpn_up:
         syslog.syslog('mounting network shares ...')
 
-        mounts = [mkcifs(key, value) for key, value in mount_mapping.items()]
-
-        try:
-            for ctx in mounts:
-                if not pathlib.Path(ctx.target).is_dir():
-                    pathlib.Path(ctx.target).mkdir(parents=True, exist_ok=True)
-                ctx.mount()
-        except Exception as error:
-            syslog.syslog(str(error))
+        for source, target in mount_mapping.items():
+            if not target.is_dir():
+                target.mkdir(parents=True, exist_ok=True)
+            try:
+                mkcifs(source, target).mount()
+            except Exception as error:
+                syslog.syslog(str(error))
         time.sleep(5)
 
     if interface == 'tun0' and state == State.vpn_down:
         syslog.syslog('unmounting network shares ...')
-        try:
-            mounts = [unmounter(key) for key in mount_mapping.keys()]
-
-            for ctx in mounts:
-                ctx.umount()
-        except Exception as error:
-            syslog.syslog(str(error))
-        time.sleep(5)
+        for source in sorted(mount_mapping.keys()):
+            try:
+                unmounter(source).umount()
+                time.sleep(5)
+            except Exception as error:
+                syslog.syslog(str(error))
 
     syslog.syslog('mounter finished')
     return 0
