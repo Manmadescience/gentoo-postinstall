@@ -27,9 +27,6 @@ automatically if not passed via cli.
 
 Disclaimer: no warranty whatsoever, use at your own risk.
 
-TODO:
- * replace mimicking ``pygmentize`` cli call with calling the appropriate pygments function
-
 For quick testing:
 
 .. code-block::bash
@@ -44,6 +41,7 @@ For quick testing:
 from __future__ import absolute_import, division, print_function
 
 import argparse
+import io
 import itertools
 import json
 import re
@@ -51,7 +49,8 @@ import subprocess
 import sys
 
 
-formatter_plain = lambda arg: arg
+formatter_plain = lambda text: text
+colorer_plain = lambda lexer, text: print(text)
 
 
 #----------------------------------------------------------------------
@@ -71,6 +70,27 @@ def formatter_xml(unformatted):
     ).decode('utf-8')
 
 
+#----------------------------------------------------------------------
+def colorer(lexername, text):
+
+    formatter = pygments.formatters.terminal.TerminalFormatter()
+    formatter.encoding = pygments.util.terminal_encoding(sys.stdout)
+    out = sys.stdout.buffer if sys.version_info > (3,) else sys.stdout
+
+    try:
+        lexer = pygments.lexers.get_lexer_by_name(lexername)
+    except ClassNotFound:
+        lexer = None
+
+    if not lexer:
+        try:
+            lexer = pygments.lexers.guess_lexer(text)
+        except ClassNotFound:
+            lexer = pygments.lexers.special.TextLexer()
+
+    pygments.cmdline.highlight(text, lexer, formatter, out)
+
+
 try:
     import bs4
 except ImportError:
@@ -82,7 +102,10 @@ except ImportError:
     formatter_xml = formatter_plain
 
 
-import pygments.cmdline
+try:
+    import pygments.cmdline
+except ImportError:
+    colorer = colorer_plain
 
 
 #----------------------------------------------------------------------
@@ -129,10 +152,12 @@ def main():
     if print_headers:
         print(headers + '\n')
 
-    cmd = ['pygmentize', '-l', lexer]
-    p = subprocess.Popen(
-        cmd, stdin=subprocess.PIPE, shell=False
-    ).communicate(input=formatter(payload).encode('utf-8'))
+##    cmd = ['pygmentize', '-l', lexer]
+##    p = subprocess.Popen(
+##        cmd, stdin=subprocess.PIPE, shell=False
+##    ).communicate(input=formatter(payload).encode('utf-8'))
+
+    colorer(lexer, formatter(payload))
     return 0
 
 
