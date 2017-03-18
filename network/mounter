@@ -1,8 +1,8 @@
 #!/usr/bin/env python3.5
 
-import os
 import argparse
 import enum
+import pathlib
 import sys
 import syslog
 import time
@@ -19,9 +19,10 @@ conn_names = [
 
 user = 'hoefling'
 
-network_root = os.path.join('//', 'master.qanet.local')
-mount_root = os.path.join('/', 'mnt', 'master')
-samba_creds = os.path.join('/', 'home', 'hoefling', '.netqa', 'smbcredentials')
+network_root = pathlib.Path('//', 'master.qanet.local')
+network_root2 = pathlib.Path('//', '172.16.132.1')
+mount_root = pathlib.Path('/', 'mnt', 'master')
+samba_creds = pathlib.Path('/', 'home', 'hoefling', '.netqa', 'smbcredentials')
 
 
 ########################################################################
@@ -38,7 +39,7 @@ class State(enum.Enum):
     vpn_pre_down = 'vpn-pre-down'
 
 #----------------------------------------------------------------------
-def mkcifs(source: str, target: str) -> libmount.Context:
+def mkcifs(source: pathlib.Path, target: pathlib.Path) -> libmount.Context:
     ''''''
     ctx = libmount.Context()
     ctx.fstype = 'cifs'
@@ -46,23 +47,23 @@ def mkcifs(source: str, target: str) -> libmount.Context:
         'rw,_netdev,user,exec,uid={user},'
         'gid={user},credentials={creds}'
     ).format(user=user, creds=samba_creds)
-    ctx.source = source
-    ctx.target = target
+    ctx.source = str(source)
+    ctx.target = str(target)
     return ctx
 
 #----------------------------------------------------------------------
-def unmounter(source: str) -> libmount.Context:
+def unmounter(source: pathlib.Path) -> libmount.Context:
     ''''''
     ctx = libmount.Context()
     ctx.enable_force(True)
     ##ctx.enable_lazy(True)
     ctx.options = 'cifs'
-    ctx.source = source
-    ctx.target = source
+    ctx.source = str(source)
+    ctx.target = str(source)
     return ctx
 
 #----------------------------------------------------------------------
-def main():
+def main() -> int:
     '''entry point'''
 
     syslog.syslog('mounter started ...')
@@ -80,24 +81,28 @@ def main():
     interface = args.connstate[0]
     state = State(args.connstate[1])
 
+    mount_mapping = {
+        network_root / 'testenv': mount_root / 'env',
+        network_root / 'TestTools': mount_root / 'testtools',
+        network_root / 'FrameWork': mount_root / 'framework',
+        network_root / 'Projects': mount_root / 'projects',
+        network_root / 'TestImplementation': mount_root / 'test_implementation',
+        network_root / 'sphinx_docs': mount_root / 'sphinx_docs',
+        network_root2 / 'Testumgebung': mount_root / 'test_environment',
+        network_root2 / 'Storage': mount_root / 'storage',
+    }
+
+    syslog.syslog(sorted(mount_mapping.keys()))
+
     if interface == 'tun0' and state == State.vpn_up:
         syslog.syslog('mounting network shares ...')
 
-        mounts = [
-            mkcifs(os.path.join('//', '172.16.132.1', 'Testumgebung'), os.path.join(mount_root, 'test_environment')),
-            mkcifs(os.path.join('//', '172.16.132.1', 'Storage'), os.path.join(mount_root, 'storage')),
-            mkcifs(os.path.join(network_root, 'testenv'), os.path.join(mount_root, 'env')),
-            mkcifs(os.path.join(network_root, 'TestTools'), os.path.join(mount_root, 'testtools')),
-            mkcifs(os.path.join(network_root, 'FrameWork'), os.path.join(mount_root, 'framework')),
-            mkcifs(os.path.join(network_root, 'Projects'), os.path.join(mount_root, 'projects')),
-            mkcifs(os.path.join(network_root, 'TestImplementation'), os.path.join(mount_root, 'test_implementation')),
-            mkcifs(os.path.join(network_root, 'sphinx_docs'), os.path.join(mount_root, 'sphinx_docs')),
-        ]
+        mounts = [mkcifs(key, value) for key, value in mount_mapping.items()]
 
         try:
             for ctx in mounts:
-                if not os.path.isdir(ctx.target):
-                    os.makedirs(ctx.target)
+                if not pathlib.Path(ctx.target).is_dir():
+                    pathlib.Path(ctx.target).mkdir(parents=True, exist_ok=True)
                 ctx.mount()
         except Exception as error:
             syslog.syslog(str(error))
@@ -106,16 +111,8 @@ def main():
     if interface == 'tun0' and state == State.vpn_down:
         syslog.syslog('unmounting network shares ...')
         try:
-            mounts = [
-                unmounter(os.path.join('//', '172.16.132.1', 'Testumgebung')),
-                unmounter(os.path.join('//', '172.16.132.1', 'Storage')),
-                unmounter(os.path.join(network_root, 'testenv')),
-                unmounter(os.path.join(network_root, 'TestTools')),
-                unmounter(os.path.join(network_root, 'FrameWork')),
-                unmounter(os.path.join(network_root, 'Projects')),
-                unmounter(os.path.join(network_root, 'TestImplementation')),
-                unmounter(os.path.join(network_root, 'sphinx_docs')),
-            ]
+            mounts = [unmounter(key) for key in mount_mapping.keys()]
+
             for ctx in mounts:
                 ctx.umount()
         except Exception as error:
