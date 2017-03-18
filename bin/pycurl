@@ -28,7 +28,6 @@ Disclaimer: no warranty whatsoever, use at your own risk.
 
 TODO:
  * replace mimicking ``pygmentize`` cli call with calling the appropriate pygments function
- * proper content type checks by parsing returned headers
 
 For quick testing:
 
@@ -63,9 +62,9 @@ def main():
 
     try:
         out = subprocess.check_output(['curl'] + args + ['--include'])
-        matcher = re.compile(b'charset=(.*)$', re.MULTILINE)
-        enc = next(item.group(1) for item in itertools.islice(re.finditer(matcher, out), 1))
-        out = out.decode(encoding=enc.decode())
+        matcher_encoding = re.compile(b'charset=(.*?)(;|\s|\n|\r\n|$)', re.MULTILINE)
+        encoding = next(item.group(1) for item in itertools.islice(re.finditer(matcher_encoding, out), 1))
+        out = out.decode(encoding=encoding.decode())
     except subprocess.CalledProcessError:
         return 1
     except StopIteration:  # charset information not found or present, try default encoding
@@ -73,17 +72,20 @@ def main():
 
     (headers, payload) = out.strip().split('\r\n\r\n', 1)
 
-    if payload.strip().startswith('{'):
+    matcher = re.compile('Content-Type:\s+(.*?)(;|\s|$)', re.MULTILINE)
+    content_type = next(item.group(1) for item in itertools.islice(re.finditer(matcher, out), 1))
+
+    if content_type == 'application/json':
         lexer = 'json'
         payload_formatted = json.dumps(
             json.loads(payload), indent=4
         )
-    elif '<html' in payload.lower():
+    elif content_type == 'text/html':
         lexer = 'html'
         payload_formatted = bs4.BeautifulSoup(
             payload, 'html.parser'
         ).prettify()
-    else:  # assume xml
+    elif content_type == 'application/xml':
         lexer = 'xml'
         payload_formatted = lxml.etree.tostring(
             lxml.etree.fromstring(
@@ -93,6 +95,9 @@ def main():
             pretty_print=True,
             method='xml'
         ).decode('utf-8')
+    else:
+        lexer = ''
+        payload_formatted = payload
 
     if print_headers:
         print(headers + '\n')
