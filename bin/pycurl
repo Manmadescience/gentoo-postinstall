@@ -18,6 +18,7 @@ Example usage:
 
 .. code-block::bash
 
+   $ pycurl -s http://localhost:8000/api/v2/projects/
    $ pycurl -i -H "Authorization: JWT my-token" http://localhost:8000/api/v2/projects/1/testcases/
    $ pycurl -X PATCH -H "Authorization: JWT my-token" -d '{"name": "foo"}' http://localhost:8000/api/v2/projects/1/testcases/1/
 
