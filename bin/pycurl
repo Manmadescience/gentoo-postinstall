@@ -49,9 +49,45 @@ import re
 import subprocess
 import sys
 
-import bs4
-import lxml.etree
+
+formatter_plain = lambda arg: arg
+
+
+#----------------------------------------------------------------------
+def formatter_html(unformatted):
+    return bs4.BeautifulSoup(unformatted, 'html.parser').prettify()
+
+
+#----------------------------------------------------------------------
+def formatter_xml(unformatted):
+    return lxml.etree.tostring(
+        lxml.etree.fromstring(
+            unformatted.encode('utf-8'),
+            parser=lxml.etree.XMLParser(encoding='utf-8')
+        ),
+        pretty_print=True,
+        method='xml'
+    ).decode('utf-8')
+
+
+try:
+    import bs4
+except ImportError:
+    formatter_html = formatter_plain
+
+try:
+    import lxml.etree
+except ImportError:
+    formatter_xml = formatter_plain
+
+
 import pygments.cmdline
+
+
+#----------------------------------------------------------------------
+def formatter_json(unformatted):
+    ''''''
+    return json.dumps(json.loads(unformatted), indent=4)
 
 
 #----------------------------------------------------------------------
@@ -77,27 +113,17 @@ def main():
 
     if content_type == 'application/json':
         lexer = 'json'
-        payload_formatted = json.dumps(
-            json.loads(payload), indent=4
-        )
+        formatter = formatter_json
     elif content_type == 'text/html':
         lexer = 'html'
-        payload_formatted = bs4.BeautifulSoup(
-            payload, 'html.parser'
-        ).prettify()
+        formatter = formatter_html
     elif content_type == 'application/xml':
         lexer = 'xml'
-        payload_formatted = lxml.etree.tostring(
-            lxml.etree.fromstring(
-                payload.encode('utf-8'),
-                parser=lxml.etree.XMLParser(encoding='utf-8')
-            ),
-            pretty_print=True,
-            method='xml'
-        ).decode('utf-8')
+        formatter = formatter_xml
+        print(formatter)
     else:
         lexer = ''
-        payload_formatted = payload
+        formatter = no_format
 
     if print_headers:
         print(headers + '\n')
@@ -105,7 +131,7 @@ def main():
     cmd = ['pygmentize', '-l', lexer]
     p = subprocess.Popen(
         cmd, stdin=subprocess.PIPE, shell=False
-    ).communicate(input=payload_formatted.encode('utf-8'))
+    ).communicate(input=formatter(payload).encode('utf-8'))
     return 0
 
 
