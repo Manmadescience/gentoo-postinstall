@@ -5,7 +5,7 @@ Basically, this is nothing but
 
 .. code-block::bash
 
-   $ curl ${CURL_ARGS} | python -mjson.tool | pygmentize -l json
+   $ curl ${CURL_ARGS} | python -mjson.tool | pygmentize -l json  # example for JSON content type
 
 only in python. I don't want to battle bash on reinterpreting
 quoted cURL args when trying to wrap this into a script
@@ -26,13 +26,25 @@ automatically if not passed via cli.
 
 Disclaimer: no warranty whatsoever, use at your own risk.
 
-TODO: replace mimicking ``pygmentize`` cli call with calling
-the appropriate pygments function.
+TODO:
+ * replace mimicking ``pygmentize`` cli call with calling the appropriate pygments function
+ * proper content type checks by parsing returned headers
+
+For quick testing:
+
+.. code-block::bash
+
+   $ curl http://eu.httpbin.org/get     # json
+   $ curl http://eu.httpbin.org/xml     # xml
+   $ curl http://eu.httpbin.org/html    # html
+
 '''
 
 
 import argparse
+import bs4
 import json
+import lxml.etree
 import pygments.cmdline
 import subprocess
 import sys
@@ -41,23 +53,41 @@ import sys
 #----------------------------------------------------------------------
 def main():
     ''''''
-    _, args = argparse.ArgumentParser().parse_known_args()
-
-    if 'Content-Type: application/json' not in args:
-        args += ['-H', 'Content-Type: application/json']
+    (_, args) = argparse.ArgumentParser().parse_known_args()
+    print_headers = any(arg in args for arg in ['-i', '--include'])
+    args += ['--include']
 
     cmd = ['curl'] + args
-    headers, payload = subprocess.run(
+    (headers, payload) = subprocess.run(
         cmd, stdout=subprocess.PIPE,
         universal_newlines=True
-    ).stdout.strip().split('{', 1)
-    print(headers)
+    ).stdout.strip().split('\n\n', 1)
 
-    payload_formatted = json.dumps(
-        json.loads('{' + payload), indent=4
-    )
+    if payload.strip().startswith('{'):
+        lexer = 'json'
+        payload_formatted = json.dumps(
+            json.loads(payload), indent=4
+        )
+    elif '<html' in payload.lower():
+        lexer = 'html'
+        payload_formatted = bs4.BeautifulSoup(
+            payload, 'html.parser'
+        ).prettify()
+    else:  # assume xml
+        lexer = 'xml'
+        payload_formatted = lxml.etree.tostring(
+            lxml.etree.fromstring(
+                payload.encode('utf-8'),
+                parser=lxml.etree.XMLParser(encoding='utf-8')
+            ),
+            pretty_print=True,
+            method='xml'
+        ).decode()
 
-    cmd = ['pygmentize', '-l', 'json']
+    if print_headers:
+        print(headers + '\n')
+
+    cmd = ['pygmentize', '-l', lexer]
     p = subprocess.Popen(
         cmd, stdin=subprocess.PIPE, shell=False
     ).communicate(input=payload_formatted.encode())
