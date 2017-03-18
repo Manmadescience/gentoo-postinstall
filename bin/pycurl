@@ -144,18 +144,12 @@ def main():
     elif content_type == 'application/xml':
         lexer = 'xml'
         formatter = formatter_xml
-        print(formatter)
     else:
         lexer = ''
         formatter = no_format
 
     if print_headers:
         print(headers + '\n')
-
-##    cmd = ['pygmentize', '-l', lexer]
-##    p = subprocess.Popen(
-##        cmd, stdin=subprocess.PIPE, shell=False
-##    ).communicate(input=formatter(payload).encode('utf-8'))
 
     colorer(lexer, formatter(payload))
     return 0
