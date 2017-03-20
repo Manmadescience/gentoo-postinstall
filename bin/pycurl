@@ -79,13 +79,13 @@ def colorer(lexername, text):
 
     try:
         lexer = pygments.lexers.get_lexer_by_name(lexername)
-    except ClassNotFound:
+    except pygments.util.ClassNotFound:
         lexer = None
 
     if not lexer:
         try:
             lexer = pygments.lexers.guess_lexer(text)
-        except ClassNotFound:
+        except pygments.util.ClassNotFound:
             lexer = pygments.lexers.special.TextLexer()
 
     pygments.cmdline.highlight(text, lexer, formatter, out)
