@@ -144,6 +144,12 @@ def main():
     elif content_type == 'application/xml':
         lexer = 'xml'
         formatter = formatter_xml
+    elif content_type == 'application/javascript':
+        lexer = 'javascript'
+        formatter = formatter_html
+    elif content_type == 'text/css':
+        lexer = 'css'
+        formatter = formatter_html
     else:
         lexer = ''
         formatter = formatter_plain
