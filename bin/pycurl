@@ -146,7 +146,7 @@ def main():
         formatter = formatter_xml
     else:
         lexer = ''
-        formatter = no_format
+        formatter = formatter_plain
 
     if print_headers:
         print(headers + '\n')
