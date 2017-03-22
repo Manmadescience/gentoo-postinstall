@@ -45,9 +45,12 @@ import io
 import itertools
 import json
 import re
+import signal
 import subprocess
 import sys
 
+
+signal.signal(signal.SIGINT, lambda sig, frame: sys.exit(0))
 
 formatter_plain = lambda text: text
 colorer_plain = lambda lexer, text: print(text)
