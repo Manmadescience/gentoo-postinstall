@@ -52,3 +52,9 @@ export PROJECT_HOME="$HOME/projects"
 export WORKON_HOME="$PROJECT_HOME/.venvs"
 VENVWRAPPER="/usr/bin/virtualenvwrapper.sh"
 [ -f "$VENVWRAPPER" ] && source "$VENVWRAPPER"
+
+# set most as the default pager if installed
+_most=$(command -v most)
+if [ $? -eq 0 ]; then
+	export PAGER="$_most"
+fi
