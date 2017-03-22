@@ -98,17 +98,22 @@ try:
     import bs4
 except ImportError:
     formatter_html = formatter_plain
+except KeyboardInterrupt:
+    sys.exit(0)
 
 try:
     import lxml.etree
 except ImportError:
     formatter_xml = formatter_plain
-
+except KeyboardInterrupt:
+    sys.exit(0)
 
 try:
     import pygments.cmdline
 except ImportError:
     colorer = colorer_plain
+except KeyboardInterrupt:
+    sys.exit(0)
 
 
 #----------------------------------------------------------------------
