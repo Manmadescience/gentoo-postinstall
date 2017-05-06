@@ -12,11 +12,7 @@ function _run {
 
 	ARG_BIOS=""
 	if [ "$ARCH" == "x86_64" ]; then
-		EFIBIOS="$HOME/bin/efi-bios-$ARCH.bin"
-		if [ ! -f "$EFIBIOS" ]; then
-			echo -e "efi bios file not found!" && return 1
-		fi
-		ARG_BIOS="-bios $EFIBIOS"
+		ARG_BIOS="-drive file=/usr/share/edk2-ovmf/OVMF.fd,if=pflash,format=raw,unit=0,readonly=on"
 	fi
 	qemu-system-$ARCH \
 			-enable-kvm \
