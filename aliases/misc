@@ -3,3 +3,4 @@
 alias sudo='sudo '  # to resolve aliased commands when running under sudo
 alias mount='mount | column -t'  # format raw mount output
 alias curl='pycurl'  # python wrapper around cURL with pretty printing JSON output
+alias gpu-battery='echo "battery" | sudo tee /sys/class/drm/card1/device/power_dpm_state > /dev/null' # apply battery mode to discrete gpu
