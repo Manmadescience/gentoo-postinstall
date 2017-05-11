@@ -138,10 +138,12 @@ def main():
     except StopIteration:  # charset information not found or present, try default encoding
         out = out.decode()
 
-    (headers, payload) = out.strip().split('\r\n\r\n', 1)
+    ret = out.strip().split('\r\n\r\n', 1)
+    headers = ret[0]
+    payload = ret[1] if len(ret) > 1 else ''
 
     matcher = re.compile('Content-Type:\s+(.*?)(;|\s|$)', re.MULTILINE)
-    content_type = next(item.group(1) for item in itertools.islice(re.finditer(matcher, out), 1))
+    content_type = next((item.group(1) for item in itertools.islice(re.finditer(matcher, out), 1)), '')
 
     if content_type == 'application/json':
         lexer = 'json'
@@ -162,7 +164,7 @@ def main():
         lexer = ''
         formatter = formatter_plain
 
-    if print_headers:
+    if print_headers and sys.stdout.isatty():
         print(headers + '\n')
 
     colorer(lexer, formatter(payload))
