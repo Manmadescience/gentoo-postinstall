@@ -27,7 +27,12 @@ bind '"\e[A":history-search-backward'
 bind '"\e[B":history-search-forward'
 
 # enable bash completion
-source /etc/bash/bashrc.d/bash_completion.sh
+if [ -f "/etc/bash/bashrc.d/bash_completion.sh" ]; then
+	source /etc/bash/bashrc.d/bash_completion.sh
+# in e.g. raspbian the file is:
+elif [ -f "/etc/bash_completion" ]; then
+	source /etc/bash_completion
+fi
 # also for sudo'ed commands
 complete -cf sudo
 
