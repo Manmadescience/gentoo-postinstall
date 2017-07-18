@@ -21,6 +21,8 @@ fi
 if [ -d "$HOME/bin" ] ; then
         PATH=$PATH:$HOME/programming/misc/depot_tools
 fi
+# append sbin dir to PATH so the system commands are at least known to me
+PATH=$PATH:/sbin
 
 # bind history search to arrow keys
 bind '"\e[A":history-search-backward'
