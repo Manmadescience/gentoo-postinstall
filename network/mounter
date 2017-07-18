@@ -56,7 +56,7 @@ def unmounter(source: pathlib.Path) -> libmount.Context:
     ''''''
     ctx = libmount.Context()
     ctx.enable_force(True)
-    ##ctx.enable_lazy(True)
+    ctx.enable_lazy(True)
     ctx.options = 'cifs'
     ctx.source = str(source)
     ctx.target = str(source)
@@ -82,14 +82,14 @@ def main() -> int:
     state = State(args.connstate[1])
 
     mount_mapping = {
-        network_root / 'testenv': mount_root / 'env',
-        network_root / 'TestTools': mount_root / 'testtools',
-        network_root / 'FrameWork': mount_root / 'framework',
         network_root / 'Projects': mount_root / 'projects',
+        network_root / 'TestTools': mount_root / 'testtools',
         network_root / 'TestImplementation': mount_root / 'test_implementation',
-        network_root / 'sphinx_docs': mount_root / 'sphinx_docs',
-        network_root2 / 'Testumgebung': mount_root / 'test_environment',
-        network_root2 / 'Storage': mount_root / 'storage',
+        ##network_root / 'testenv': mount_root / 'env',
+        ##network_root / 'FrameWork': mount_root / 'framework',
+        ##network_root / 'sphinx_docs': mount_root / 'sphinx_docs',
+        ##network_root2 / 'Testumgebung': mount_root / 'test_environment',
+        ##network_root2 / 'Storage': mount_root / 'storage',
     }
 
     if interface == 'tun0' and state == State.vpn_up:
