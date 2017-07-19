@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/x86 4.12.0-gentoo Kernel Configuration
+# Linux/x86 4.12.2-gentoo Kernel Configuration
 #
 
 #
@@ -2103,7 +2103,16 @@ CONFIG_INPUT_MISC=y
 # CONFIG_INPUT_IDEAPAD_SLIDEBAR is not set
 # CONFIG_INPUT_DRV2665_HAPTICS is not set
 # CONFIG_INPUT_DRV2667_HAPTICS is not set
-# CONFIG_RMI4_CORE is not set
+CONFIG_RMI4_CORE=y
+# CONFIG_RMI4_I2C is not set
+CONFIG_RMI4_SMB=y
+# CONFIG_RMI4_F03 is not set
+# CONFIG_RMI4_F11 is not set
+# CONFIG_RMI4_F12 is not set
+# CONFIG_RMI4_F30 is not set
+# CONFIG_RMI4_F34 is not set
+# CONFIG_RMI4_F54 is not set
+# CONFIG_RMI4_F55 is not set
 
 #
 # Hardware I/O ports
