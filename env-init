@@ -13,30 +13,12 @@ function fn_exists () {
 }
 export -f mark fn_exists
 
-# set PATH so it includes user's private bin if it exists
-if [ -d "$HOME/bin" ] ; then
-    PATH="$HOME/bin:$PATH"
-fi
-# android sdk tools necessary to build cyanogenmod
-if [ -d "$HOME/bin" ] ; then
-        PATH=$PATH:$HOME/programming/misc/depot_tools
-fi
 # append sbin dirs to PATH so the system commands are at least known to me
 PATH=$PATH:/sbin:/usr/sbin
 
 # bind history search to arrow keys
 bind '"\e[A":history-search-backward'
 bind '"\e[B":history-search-forward'
-
-# enable bash completion
-if [ -f "/etc/bash/bashrc.d/bash_completion.sh" ]; then
-	source /etc/bash/bashrc.d/bash_completion.sh
-# in e.g. raspbian the file is:
-elif [ -f "/etc/bash_completion" ]; then
-	source /etc/bash_completion
-fi
-# also for sudo'ed commands
-complete -cf sudo
 
 # show git branch in prompt:
 # include git script
@@ -47,12 +29,6 @@ if [ -f "$GIT_PROMPT" ]; then
 	#PS1='[\u@\h \W$(__git_ps1 " (%s)")]\$ '
 	PS1='\[\033[01;32m\]\u@\h\[\033[01;34m\] \w$(__git_ps1) \$\[\033[00m\] '
 fi
-
-# prevent wine from adding menu entries and desktop links
-export WINEDLLOVERRIDES='winemenubuilder.exe=d'
-# switch to 32bit prefix
-export WINEPREFIX="$HOME/.local/share/wineprefixes/win32"
-export WINEARCH="win32"
 
 # enable virtualenvwrapper
 export PROJECT_HOME="$HOME/projects"

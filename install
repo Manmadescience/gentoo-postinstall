@@ -37,26 +37,22 @@ done
 eend $?
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 
-ebegin "Copying custom scripts to $HOME/bin"
+LOCAL_BIN=$(systemd-path user-binaries)
+ebegin "Copying custom scripts to $LOCAL_BIN"
 # copy custom executables
-if [ -d "$HOME/bin" ] ; then
-    cp -ax $GIT_DIR/bin/* $HOME/bin
-    cp -ax $GIT_DIR/qemu/* $HOME/bin
+if [ -d "$LOCAL_BIN" ] ; then
+    cp -ax "$GIT_DIR/bin/*" "$LOCAL_BIN"
+    cp -ax "$GIT_DIR/qemu/*" "$LOCAL_BIN"
 fi
 eend $?
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 
-ebegin "Patching buildkernel script"
-sed -i "s,^_kernel_conf_dir=\"\"$,_kernel_conf_dir=\"$GIT_DIR/kernel.conf\",g" $HOME/bin/buildkernel
-eend $?
-rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
-
 # copy mounter
-ebegin "Installing shared dir mounter"
-NM_CONF_DIR="/etc/NetworkManager/dispatcher.d/"
-POST_CONN_HOOK="$NM_CONF_DIR/99-mounter"
-sudo cp -ax $GIT_DIR/network/mounter $POST_CONN_HOOK
+#ebegin "Installing shared dir mounter"
+#NM_CONF_DIR="/etc/NetworkManager/dispatcher.d/"
+#POST_CONN_HOOK="$NM_CONF_DIR/99-mounter"
+#sudo cp -ax $GIT_DIR/network/mounter $POST_CONN_HOOK
 # change owner to root
-sudo chown root:root $POST_CONN_HOOK
-eend $?
-rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
+#sudo chown root:root $POST_CONN_HOOK
+#eend $?
+#rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
