@@ -1,13 +1,18 @@
 # bump kernel version via eselect
-if [ "${CATEGORY}/${PN}" == 'sys-kernel/gentoo-sources' ] && [ "${EBUILD_PHASE}" == "postinst" ];
-then
+if [ "${CATEGORY}/${PN}" == 'sys-kernel/gentoo-sources' ] && [ "${EBUILD_PHASE}" == "postinst" ]; then
+	_kernel_old_version=$(eselect kernel show | tail -n1 | sed 's/.*linux-\(.*\)-gentoo/\1/')
 	ebegin Updating kernel symlink
 	eselect kernel set "linux-${PV}-gentoo"
 	eend $?
 	rc=$?
-	if [[ $rc == 0 ]]; then
-		einfo $(eselect kernel show)
-	else
-		die Unable to update kernel symlink
-	fi
+	if [[ $rc != 0 ]]; then die Unable to update kernel symlink; fi
+	einfo $(eselect kernel show)
+
+	ebegin Copying latest kernel config for genkernel
+	cp -ax /etc/kernels/kernel-config-x86_64-{${_kernel_old_version},${PV}}-gentoo
+	#/etc/kernels/kernel-config-x86_64-${PV}-gentoo 2>/dev/null
+	eend $?
+	rc=$?
+	if [[ $rc != 0 ]]; then die Unable to copy genkernel config; fi
+	einfo To compile new kernel, run "\033[1;37msudo genkernel kernel && sudo cp /boot/kernel-genkernel-x86_64-${PV}-gentoo /boot/EFI/gentoo/bootx64.efi\033[0m"
 fi
