@@ -1,25 +1,6 @@
 #!/bin/bash
 
-_rc_fns="/etc/init.d/functions.sh"
-_rc_fns_fallback="/etc/init.d/functions"
-if [ -f "$_rc_fns" ]; then
-        source $_rc_fns
-elif [ -f "$_rc_fns_fallback" ]; then
-        source $_rc_fns_fallback
-else
-        einfo () {
-                printf "%s\n" "$*"
-        }
-        ebegin () {
-                printf "%s ...\n" "$*"
-        }
-        eend () {
-                _ret=$?
-                printf "\n"; return $_ret
-        }
-        export -f einfo ebegin eend
-        einfo "init.d functions not found, using custom fallback."
-fi
+source /lib/gentoo/functions.sh
 
 ebegin "Sourcing custom scripts in .bashrc"
 GIT_DIR=$(git rev-parse --show-toplevel)
@@ -41,9 +22,15 @@ LOCAL_BIN=$(systemd-path user-binaries)
 ebegin "Copying custom scripts to $LOCAL_BIN"
 # copy custom executables
 if [ -d "$LOCAL_BIN" ] ; then
-    cp -ax "$GIT_DIR/bin/*" "$LOCAL_BIN"
-    cp -ax "$GIT_DIR/qemu/*" "$LOCAL_BIN"
+    cp -ax "$GIT_DIR"/bin/* "$LOCAL_BIN" 2>/dev/null
+    cp -ax "$GIT_DIR"/qemu/* "$LOCAL_BIN" 2>/dev/null
 fi
+eend $?
+rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
+
+# install /etc/portage/bashrc
+ebegin "Installing /etc/portage/bashrc"
+sudo cp -ax "$GIT_DIR"/portage-bashrc /etc/portage/bashrc
 eend $?
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 

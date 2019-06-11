@@ -1,0 +1,13 @@
+# bump kernel version via eselect
+if [ "${CATEGORY}/${PN}" == 'sys-kernel/gentoo-sources' ] && [ "${EBUILD_PHASE}" == "postinst" ];
+then
+	ebegin Updating kernel symlink
+	eselect kernel set "linux-${PV}-gentoo"
+	eend $?
+	rc=$?
+	if [[ $rc == 0 ]]; then
+		einfo $(eselect kernel show)
+	else
+		die Unable to update kernel symlink
+	fi
+fi
