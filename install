@@ -1,13 +1,20 @@
 #!/bin/bash
 
 source /lib/gentoo/functions.sh
+#PORTAGE_BIN_PATH=$(python -c "import portage; print(portage.PORTAGE_BIN_PATH)")
+#source ${PORTAGE_BIN_PATH}/isolated-functions.sh
+
+die () {
+    eerror $1
+    exit $rc
+}
 
 ebegin "Sourcing custom scripts in .bashrc"
 GIT_DIR=$(git rev-parse --show-toplevel)
 SOURCE_LINE="source \"$GIT_DIR/env-init\""
 grep -q -F "$SOURCE_LINE" $HOME/.bashrc || printf "\n# execute custom init script\n$SOURCE_LINE" >> $HOME/.bashrc
 eend $?
-rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
+rc=$?; if [[ $rc != 0 ]]; then die "Sourcing scripts failed"; fi
 
 ebegin "Sourcing aliases"
 # source aliases
@@ -16,23 +23,13 @@ for f in "$GIT_DIR"/aliases/*; do
 	grep -q -F "$SOURCE_LINE" $HOME/.bashrc || printf "\n$SOURCE_LINE" >> $HOME/.bashrc
 done
 eend $?
-rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
-
-LOCAL_BIN=$(systemd-path user-binaries)
-ebegin "Copying custom scripts to $LOCAL_BIN"
-# copy custom executables
-if [ -d "$LOCAL_BIN" ] ; then
-    cp -ax "$GIT_DIR"/bin/* "$LOCAL_BIN" 2>/dev/null
-    cp -ax "$GIT_DIR"/qemu/* "$LOCAL_BIN" 2>/dev/null
-fi
-eend $?
-rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
+rc=$?; if [[ $rc != 0 ]]; then die "Sourcing aliases failed"; fi
 
 # install /etc/portage/bashrc
 ebegin "Installing /etc/portage/bashrc"
 sudo cp -ax "$GIT_DIR"/portage-bashrc /etc/portage/bashrc
 eend $?
-rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
+rc=$?; if [[ $rc != 0 ]]; then die "Installing custom bashrc failed"; fi
 
 # copy mounter
 #ebegin "Installing shared dir mounter"
@@ -43,3 +40,8 @@ rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 #sudo chown root:root $POST_CONN_HOOK
 #eend $?
 #rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
+
+ebegin "Running tests"
+bats tests/ 2>1 1>/dev/null
+eend $?
+rc=$?; if [[ $rc != 0 ]]; then die "Tests failed - rerun \"bats tests/\" for details"; fi
