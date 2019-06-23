@@ -10,9 +10,8 @@ if [ "${CATEGORY}/${PN}" == 'sys-kernel/gentoo-sources' ] && [ "${EBUILD_PHASE}"
 
 	ebegin Copying latest kernel config for genkernel
 	cp -ax /etc/kernels/kernel-config-x86_64-{${_kernel_old_version},${PV}}-gentoo
-	#/etc/kernels/kernel-config-x86_64-${PV}-gentoo 2>/dev/null
 	eend $?
 	rc=$?
 	if [[ $rc != 0 ]]; then die Unable to copy genkernel config; fi
-	einfo To compile new kernel, run "\033[1;37msudo genkernel kernel && sudo cp /boot/kernel-genkernel-x86_64-${PV}-gentoo /boot/EFI/gentoo/bootx64.efi\033[0m"
+	elog To compile new kernel, run "\033[1;37msudo genkernel kernel && sudo cp /boot/kernel-genkernel-x86_64-${PV}-gentoo /boot/EFI/gentoo/bootx64.efi\033[0m"
 fi
