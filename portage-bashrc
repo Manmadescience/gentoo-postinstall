@@ -13,5 +13,5 @@ if [ "${CATEGORY}/${PN}" == 'sys-kernel/gentoo-sources' ] && [ "${EBUILD_PHASE}"
 	eend $?
 	rc=$?
 	if [[ $rc != 0 ]]; then die Unable to copy genkernel config; fi
-	elog To compile new kernel, run "\033[1;37msudo genkernel kernel && sudo cp /boot/kernel-genkernel-x86_64-${PV}-gentoo /boot/EFI/gentoo/bootx64.efi\033[0m"
+	elog To compile new kernel, run "\033[1;37msudo sh -c \"genkernel kernel && cp /boot/kernel-genkernel-x86_64-${PV}-gentoo /boot/EFI/gentoo/bootx64.efi\"\033[0m"
 fi
