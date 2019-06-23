@@ -9,7 +9,7 @@ if [ "${CATEGORY}/${PN}" == 'sys-kernel/gentoo-sources' ] && [ "${EBUILD_PHASE}"
 	einfo $(eselect kernel show)
 
 	ebegin Copying latest kernel config for genkernel
-	cp -ax /etc/kernels/kernel-config-x86_64-{${_kernel_old_version},${PV}}-gentoo
+	cp -anx /etc/kernels/kernel-config-x86_64-{${_kernel_old_version},${PV}}-gentoo
 	eend $?
 	rc=$?
 	if [[ $rc != 0 ]]; then die Unable to copy genkernel config; fi
