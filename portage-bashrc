@@ -2,16 +2,20 @@
 if [ "${CATEGORY}/${PN}" == 'sys-kernel/gentoo-sources' ] && [ "${EBUILD_PHASE}" == "postinst" ]; then
 	_kernel_old_version=$(eselect kernel show | tail -n1 | sed 's/.*linux-\(.*\)-gentoo/\1/')
 	ebegin Updating kernel symlink
-	eselect kernel set "linux-${PV}-gentoo"
+	if ["${PR}" != "r0"]; then
+		eselect kernel set "linux-${PV}-gentoo"
+	else
+		eselect kernel set "linux-${PV}-gentoo-${PR}"
+	fi
 	eend $?
 	rc=$?
 	if [[ $rc != 0 ]]; then die Unable to update kernel symlink; fi
 	einfo $(eselect kernel show)
 
 	ebegin Copying latest kernel config for genkernel
-	cp -anx /etc/kernels/kernel-config-x86_64-{${_kernel_old_version},${PV}}-gentoo
+	cp -anx /etc/kernels/kernel-config-x86_64-{${_kernel_old_version},${PVR}}-gentoo
 	eend $?
 	rc=$?
 	if [[ $rc != 0 ]]; then die Unable to copy genkernel config; fi
-	elog To compile new kernel, run "\033[1;37msudo sh -c \"genkernel kernel && cp /boot/kernel-genkernel-x86_64-${PV}-gentoo /boot/EFI/gentoo/bootx64.efi\"\033[0m"
+	elog To compile new kernel, run "\033[1;37msudo sh -c \"genkernel kernel && cp /boot/kernel-genkernel-x86_64-${PVR}-gentoo /boot/EFI/gentoo/bootx64.efi\"\033[0m"
 fi
