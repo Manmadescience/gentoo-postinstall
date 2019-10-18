@@ -2,7 +2,7 @@
 if [ "${CATEGORY}/${PN}" == 'sys-kernel/gentoo-sources' ] && [ "${EBUILD_PHASE}" == "postinst" ]; then
 	_kernel_old_version=$(eselect kernel show | tail -n1 | sed 's/.*linux-\(.*\)-gentoo/\1/')
 	ebegin Updating kernel symlink
-	if ["${PR}" != "r0"]; then
+	if [ "$PR" == "r0" ]; then
 		eselect kernel set "linux-${PV}-gentoo"
 	else
 		eselect kernel set "linux-${PV}-gentoo-${PR}"
